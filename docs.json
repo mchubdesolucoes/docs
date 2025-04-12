@@ -8,8 +8,8 @@
   "favicon": "/favicon.svg",
   "colors": {
     "primary": "#8b5cf6",
-    "light": "#f3f4f6",
-    "dark": "#111827",
+    "light": "#8b5cf6",
+    "dark": "#8b5cf6",
     "background": {
       "light": "#ffffff",
       "dark": "#111827"
@@ -36,14 +36,14 @@
         "url": "docs",
         "groups": [
           {
-            "name": "Primeiros Passos",
+            "group": "Primeiros Passos",
             "pages": [
               "introduction",
               "quickstart"
             ]
           },
           {
-            "name": "API",
+            "group": "API",
             "pages": [
               "api-reference/introduction"
             ]
