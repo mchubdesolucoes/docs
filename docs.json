@@ -29,29 +29,21 @@
     "name": "Dashboard",
     "url": "https://app.relaxpay.app"
   },
-  "navigation": {
-    "tabs": [
-      {
-        "name": "Documentação",
-        "url": "docs",
-        "groups": [
-          {
-            "group": "Primeiros Passos",
-            "pages": [
-              "introduction",
-              "quickstart"
-            ]
-          },
-          {
-            "group": "API",
-            "pages": [
-              "api-reference/introduction"
-            ]
-          }
-        ]
-      }
-    ]
-  },
+  "navigation": [
+    {
+      "group": "Primeiros Passos",
+      "pages": [
+        "introduction",
+        "quickstart"
+      ]
+    },
+    {
+      "group": "API",
+      "pages": [
+        "api-reference/introduction"
+      ]
+    }
+  ],
   "footerSocials": {
     "website": "https://relaxpay.app"
   },
