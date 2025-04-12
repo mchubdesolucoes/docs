@@ -19,6 +19,12 @@
               "introduction",
               "quickstart"
             ]
+          },
+          {
+            "group": "API",
+            "pages": [
+              "api-reference/introduction"
+            ]
           }
         ]
       }
