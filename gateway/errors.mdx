@@ -1,0 +1,357 @@
+---
+title: "Códigos de Erro"
+description: "Lista completa de códigos de erro da API RelaxPay e como solucioná-los"
+icon: "triangle-exclamation"
+---
+
+<Note>
+  Esta página contém todos os códigos de erro que podem ser retornados pela API RelaxPay, com descrições detalhadas e instruções para correção.
+</Note>
+
+## Visão Geral
+
+A API RelaxPay utiliza códigos de status HTTP padrão para indicar o sucesso ou falha de uma requisição. Além disso, retornamos códigos de erro específicos que fornecem mais detalhes sobre o problema encontrado.
+
+<CardGroup cols={2}>
+  <Card title="Estrutura de erros" icon="file-code" color="#4CAF50">
+    Todas as respostas de erro seguem uma estrutura padronizada para facilitar o tratamento
+  </Card>
+  <Card title="Mensagens descritivas" icon="message" color="#2196F3">
+    Cada código de erro inclui uma mensagem detalhada sobre o problema
+  </Card>
+</CardGroup>
+
+### Formato de Resposta de Erro
+
+```json
+{
+  "statusCode": 400,
+  "error": "Bad Request",
+  "message": "PIX_KEY_NOT_FOUND",
+  "details": "A chave PIX informada não foi encontrada"
+}
+```
+
+## Códigos de Status HTTP
+
+<AccordionGroup>
+  <Accordion title="2xx - Sucesso" icon="check">
+    <ResponseField name="200 - OK" type="success">
+      A requisição foi processada com sucesso
+    </ResponseField>
+    <ResponseField name="201 - Created" type="success">
+      Um novo recurso foi criado com sucesso
+    </ResponseField>
+    <ResponseField name="204 - No Content" type="success">
+      A requisição foi processada, mas não há conteúdo para retornar
+    </ResponseField>
+  </Accordion>
+  <Accordion title="4xx - Erro do Cliente" icon="user-xmark">
+    <ResponseField name="400 - Bad Request" type="error">
+      A requisição contém parâmetros inválidos ou está mal formatada
+    </ResponseField>
+    <ResponseField name="401 - Unauthorized" type="error">
+      Autenticação necessária ou credenciais inválidas
+    </ResponseField>
+    <ResponseField name="403 - Forbidden" type="error">
+      Não há permissão para acessar o recurso
+    </ResponseField>
+    <ResponseField name="404 - Not Found" type="error">
+      O recurso solicitado não foi encontrado
+    </ResponseField>
+    <ResponseField name="409 - Conflict" type="error">
+      Conflito ao tentar processar a requisição
+    </ResponseField>
+    <ResponseField name="422 - Unprocessable Entity" type="error">
+      Os dados enviados são válidos, mas não podem ser processados
+    </ResponseField>
+    <ResponseField name="429 - Too Many Requests" type="warning">
+      Limite de requisições excedido
+    </ResponseField>
+  </Accordion>
+  <Accordion title="5xx - Erro do Servidor" icon="server">
+    <ResponseField name="500 - Internal Server Error" type="error">
+      Erro interno no servidor
+    </ResponseField>
+    <ResponseField name="502 - Bad Gateway" type="error">
+      Erro de comunicação entre servidores
+    </ResponseField>
+    <ResponseField name="503 - Service Unavailable" type="error">
+      Serviço temporariamente indisponível
+    </ResponseField>
+    <ResponseField name="504 - Gateway Timeout" type="error">
+      Tempo limite de resposta excedido
+    </ResponseField>
+  </Accordion>
+</AccordionGroup>
+
+## Códigos de Erro Específicos
+
+### Autenticação e Autorização
+
+<ResponseField name="INVALID_CREDENTIALS" type="error">
+  As credenciais (Client ID e/ou Client Secret) são inválidas
+  
+  **Solução**: Verifique se os valores de CI e CS estão corretos e se foram enviados nos cabeçalhos apropriados
+</ResponseField>
+
+<ResponseField name="MISSING_CREDENTIALS" type="error">
+  As credenciais não foram informadas
+  
+  **Solução**: Certifique-se de incluir os cabeçalhos `ci` e `cs` em todas as requisições
+</ResponseField>
+
+<ResponseField name="UNAUTHORIZED_IP" type="error">
+  O IP que está tentando realizar a operação não está autorizado
+  
+  **Solução**: Cadastre o IP do servidor no Dashboard RelaxPay em GATEWAY/CHECKOUT > GERENCIAMENTO DE IPs
+</ResponseField>
+
+<ResponseField name="ACCOUNT_DOCUMENTS_NOT_VALIDATED" type="error">
+  A conta ainda não teve seus documentos validados
+  
+  **Solução**: Complete o processo de validação de documentos no Dashboard RelaxPay
+</ResponseField>
+
+### PIX Cash-in
+
+<ResponseField name="INVALID_AMOUNT" type="error">
+  O valor informado é inválido
+  
+  **Solução**: Certifique-se de enviar um valor positivo e válido (mínimo de R$ 1,00)
+</ResponseField>
+
+<ResponseField name="MISSING_REQUIRED_FIELD" type="error">
+  Um campo obrigatório não foi informado
+  
+  **Solução**: Verifique se todos os campos obrigatórios foram incluídos na requisição
+</ResponseField>
+
+<ResponseField name="INVALID_CALLBACK_URL" type="error">
+  A URL de callback informada é inválida
+  
+  **Solução**: Certifique-se de informar uma URL válida, acessível publicamente e iniciada com https://
+</ResponseField>
+
+<ResponseField name="INVALID_DUE_DATE" type="error">
+  A data de vencimento informada é inválida
+  
+  **Solução**: Informe uma data de vencimento futura no formato AAAA-MM-DD
+</ResponseField>
+
+### PIX Cash-out
+
+<ResponseField name="NO_FUNDS" type="error">
+  Saldo insuficiente para realizar a transferência
+  
+  **Solução**: Adicione fundos à sua conta ou reduza o valor da transferência
+</ResponseField>
+
+<ResponseField name="PIX_KEY_NOT_FOUND" type="error">
+  A chave PIX informada não foi encontrada
+  
+  **Solução**: Verifique se a chave PIX e o tipo de chave estão corretos
+</ResponseField>
+
+<ResponseField name="DOCUMENT_VALIDATE" type="error">
+  A chave PIX não pertence ao documento informado
+  
+  **Solução**: Confirme se o documento informado corresponde ao titular da chave PIX
+</ResponseField>
+
+<ResponseField name="DUPLICATE_EXTERNAL_ID" type="warning">
+  O externalId já foi utilizado em outra transação
+  
+  **Solução**: Utilize um identificador único para cada transação
+</ResponseField>
+
+<ResponseField name="INVALID_KEY_TYPE" type="error">
+  O tipo de chave PIX informado é inválido
+  
+  **Solução**: Utilize um dos tipos válidos: document, phoneNumber, email, randomKey, paymentCode
+</ResponseField>
+
+### Webhooks
+
+<ResponseField name="WEBHOOK_VERIFICATION_FAILED" type="error">
+  A verificação da assinatura do webhook falhou
+  
+  **Solução**: Certifique-se de estar validando corretamente a assinatura com seu Client Secret
+</ResponseField>
+
+<ResponseField name="WEBHOOK_URL_UNREACHABLE" type="error">
+  A URL de webhook informada não está acessível
+  
+  **Solução**: Verifique se o endpoint está disponível e respondendo corretamente
+</ResponseField>
+
+## Limites e Restrições
+
+<ResponseField name="DAILY_LIMIT_EXCEEDED" type="error">
+  O limite diário de operações foi excedido
+  
+  **Solução**: Aguarde o próximo dia útil ou solicite um aumento de limite através do Dashboard
+</ResponseField>
+
+<ResponseField name="TRANSACTION_LIMIT_EXCEEDED" type="error">
+  O valor da transação excede o limite permitido
+  
+  **Solução**: Reduza o valor da transação ou solicite um aumento de limite
+</ResponseField>
+
+<ResponseField name="RATE_LIMIT_EXCEEDED" type="warning">
+  O limite de requisições por minuto foi excedido
+  
+  **Solução**: Implemente uma lógica de retry com exponential backoff
+</ResponseField>
+
+## Como Tratar Erros
+
+<Steps>
+  <Step title="Validação Prévia">
+    Implemente validações no lado do cliente antes de enviar requisições
+  </Step>
+  <Step title="Tratamento Estruturado">
+    Use estruturas try/catch para capturar e tratar erros
+    ```javascript
+    try {
+      const response = await fetch('https://ws.relaxpay.site/api/v1/gateway/pix-payment', {
+        method: 'POST',
+        headers: {
+          'ci': process.env.RELAXPAY_CLIENT_ID,
+          'cs': process.env.RELAXPAY_CLIENT_SECRET,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          // Dados da requisição
+        })
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        // Tratar erros específicos
+        handleApiError(data);
+        return;
+      }
+      
+      // Processar resposta de sucesso
+      processSuccess(data);
+    } catch (error) {
+      // Tratar erros de rede ou outros erros inesperados
+      handleNetworkError(error);
+    }
+    ```
+  </Step>
+  <Step title="Função de Tratamento">
+    Implemente uma função específica para tratar os erros da API
+    ```javascript
+    function handleApiError(error) {
+      const errorCode = error.message;
+      
+      switch (errorCode) {
+        case 'NO_FUNDS':
+          console.error('Saldo insuficiente para realizar a operação');
+          notifyUser('Saldo insuficiente para realizar a operação');
+          break;
+        case 'PIX_KEY_NOT_FOUND':
+          console.error('Chave PIX não encontrada');
+          notifyUser('A chave PIX informada não foi encontrada. Verifique e tente novamente.');
+          break;
+        // Outros casos específicos
+        default:
+          console.error(`Erro desconhecido: ${errorCode}`);
+          notifyUser('Ocorreu um erro ao processar sua solicitação. Tente novamente mais tarde.');
+      }
+    }
+    ```
+  </Step>
+  <Step title="Retentativas Inteligentes">
+    Implemente uma estratégia de retentativa para erros temporários
+    ```javascript
+    async function requestWithRetry(url, options, maxRetries = 3) {
+      let retries = 0;
+      
+      while (retries < maxRetries) {
+        try {
+          const response = await fetch(url, options);
+          
+          if (response.status === 429 || (response.status >= 500 && response.status < 600)) {
+            // Calcular tempo de espera com exponential backoff
+            const waitTime = Math.min(Math.pow(2, retries) * 1000, 10000);
+            retries++;
+            
+            if (retries < maxRetries) {
+              console.log(`Aguardando ${waitTime}ms antes da tentativa ${retries + 1}/${maxRetries}`);
+              await new Promise(resolve => setTimeout(resolve, waitTime));
+              continue;
+            }
+          }
+          
+          return response;
+        } catch (error) {
+          retries++;
+          
+          if (retries >= maxRetries) {
+            throw error;
+          }
+          
+          // Aguardar antes de tentar novamente
+          await new Promise(resolve => setTimeout(resolve, 1000 * retries));
+        }
+      }
+    }
+    ```
+  </Step>
+</Steps>
+
+## Exceções Comuns e Soluções
+
+<AccordionGroup>
+  <Accordion title="Erro de validação de assinatura de webhook">
+    <Check>
+      Verifique se está utilizando o algoritmo HMAC-SHA256 correto
+    </Check>
+    <Check>
+      Confirme se o Client Secret utilizado é o mesmo associado ao Client ID
+    </Check>
+    <Check>
+      Verifique se está comparando as assinaturas de forma segura (utilizando comparação de tempo constante)
+    </Check>
+    <Check>
+      Certifique-se de que o corpo do webhook não está sendo modificado antes da validação
+    </Check>
+  </Accordion>
+  <Accordion title="Erro de IP não autorizado">
+    <Check>
+      Verifique se o IP do seu servidor está cadastrado no Dashboard
+    </Check>
+    <Check>
+      Lembre-se que, se seu servidor estiver atrás de um proxy, o IP visto pela RelaxPay será o do proxy
+    </Check>
+    <Check>
+      Utilize um IP fixo para suas operações de PIX Cash-out
+    </Check>
+    <Check>
+      Ao trabalhar com múltiplos servidores, cadastre todos os IPs envolvidos
+    </Check>
+  </Accordion>
+  <Accordion title="Erros de limites excedidos">
+    <Check>
+      Verifique o limite diário da sua conta no Dashboard
+    </Check>
+    <Check>
+      Para operações de alto valor, solicite um aumento de limite
+    </Check>
+    <Check>
+      Monitore o uso dos seus limites diários para evitar surpresas
+    </Check>
+    <Check>
+      Implemente lógica de fila para distribuir operações ao longo do dia
+    </Check>
+  </Accordion>
+</AccordionGroup>
+
+<Tip>
+  Se você estiver enfrentando um erro que não está documentado aqui ou precisar de ajuda adicional, entre em contato com nosso suporte técnico em suporte@relaxpay.app.
+</Tip> 

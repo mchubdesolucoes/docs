@@ -1,0 +1,181 @@
+---
+title: "Ambientes"
+description: "Conheça os ambientes de desenvolvimento e produção da RelaxPay"
+icon: "server"
+---
+
+<Note>
+  A RelaxPay oferece dois ambientes distintos para facilitar seu desenvolvimento, testes e operação em produção.
+</Note>
+
+## Visão Geral
+
+Nossos ambientes são totalmente separados, garantindo que seus testes não afetem suas operações reais:
+
+<CardGroup cols={2}>
+  <Card title="Sandbox" icon="flask" color="#4CAF50">
+    Ambiente de testes com dados fictícios, sem movimentação financeira real
+  </Card>
+  <Card title="Produção" icon="rocket" color="#2196F3">
+    Ambiente real para operações com clientes e transações financeiras efetivas
+  </Card>
+</CardGroup>
+
+## Endpoints
+
+<Tabs>
+  <Tab title="Sandbox">
+    ```bash
+    https://sandbox.ws.relaxpay.site
+    ```
+    
+    <Check>Transações com valores fictícios</Check>
+    <Check>PIX sem movimentação real de dinheiro</Check>
+    <Check>Credenciais específicas para o ambiente sandbox</Check>
+    <Check>Sem limite de requisições para testes</Check>
+  </Tab>
+  <Tab title="Produção">
+    ```bash
+    https://ws.relaxpay.site
+    ```
+    
+    <Check>Transações financeiras reais</Check>
+    <Check>PIX com movimentação efetiva de dinheiro</Check>
+    <Check>Credenciais de produção requerem verificação adicional</Check>
+    <Check>Limites de operação conforme seu plano</Check>
+  </Tab>
+</Tabs>
+
+## Testando a Conexão
+
+<Frame>
+  <div style={{ padding: '20px', borderRadius: '8px', backgroundColor: '#f9f9f9' }}>
+    <h3>Testador de Conexão</h3>
+    <p>Verifique se você consegue acessar nossos ambientes</p>
+  </div>
+</Frame>
+
+<ParamField path="environment" select required>
+  <Option value="sandbox">Sandbox</Option>
+  <Option value="production">Produção</Option>
+</ParamField>
+
+<Button>Testar Conexão</Button>
+
+## Migrando para Produção
+
+<Steps>
+  <Step title="Valide sua integração">
+    Teste exaustivamente no ambiente sandbox todas as funcionalidades
+  </Step>
+  <Step title="Obtenha credenciais de produção">
+    Acesse o Dashboard e solicite credenciais para o ambiente de produção
+    <Frame>
+      <img src="/images/dashboard-credentials.png" alt="Dashboard para obtenção de credenciais" />
+    </Frame>
+  </Step>
+  <Step title="Atualize configurações">
+    Altere os endpoints e credenciais em sua aplicação:
+    
+    <CodeGroup>
+      <Code title="Node.js">
+        ```javascript
+        // Sandbox
+        const BASE_URL = 'https://sandbox.ws.relaxpay.site';
+        
+        // Produção
+        const BASE_URL = 'https://ws.relaxpay.site';
+        ```
+      </Code>
+      <Code title="PHP">
+        ```php
+        // Sandbox
+        define('BASE_URL', 'https://sandbox.ws.relaxpay.site');
+        
+        // Produção
+        define('BASE_URL', 'https://ws.relaxpay.site');
+        ```
+      </Code>
+    </CodeGroup>
+  </Step>
+  <Step title="Realize testes controlados">
+    Faça algumas transações de baixo valor para garantir que tudo funcione corretamente
+  </Step>
+</Steps>
+
+## Comparativo
+
+<Table>
+  <thead>
+    <tr>
+      <th>Recurso</th>
+      <th>Sandbox</th>
+      <th>Produção</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Transações PIX</td>
+      <td>✅ (simuladas)</td>
+      <td>✅ (reais)</td>
+    </tr>
+    <tr>
+      <td>Webhooks</td>
+      <td>✅</td>
+      <td>✅</td>
+    </tr>
+    <tr>
+      <td>Chaves PIX</td>
+      <td>Pré-definidas (teste)</td>
+      <td>Suas chaves reais</td>
+    </tr>
+    <tr>
+      <td>Limites diários</td>
+      <td>R$ 10.000,00</td>
+      <td>Conforme seu plano</td>
+    </tr>
+    <tr>
+      <td>Custo</td>
+      <td>Gratuito</td>
+      <td>Conforme contrato</td>
+    </tr>
+  </tbody>
+</Table>
+
+## Boas Práticas
+
+<AccordionGroup>
+  <Accordion title="Configuração por Ambiente" icon="gear">
+    Utilize variáveis de ambiente ou arquivos de configuração separados para cada ambiente.
+    
+    ```javascript
+    // config.js
+    const config = {
+      sandbox: {
+        baseUrl: 'https://sandbox.ws.relaxpay.site',
+        clientId: 'seu-client-id-sandbox',
+        clientSecret: 'seu-client-secret-sandbox'
+      },
+      production: {
+        baseUrl: 'https://ws.relaxpay.site',
+        clientId: 'seu-client-id-producao',
+        clientSecret: 'seu-client-secret-producao'
+      }
+    };
+    
+    // Defina o ambiente atual
+    const env = process.env.NODE_ENV === 'production' ? 'production' : 'sandbox';
+    module.exports = config[env];
+    ```
+  </Accordion>
+  <Accordion title="Monitoramento" icon="chart-line">
+    Configure monitoramento específico para cada ambiente, com alertas mais sensíveis em produção.
+  </Accordion>
+  <Accordion title="Testes Automatizados" icon="vial">
+    Mantenha uma suite de testes automatizados contra o ambiente sandbox antes de atualizar sua aplicação em produção.
+  </Accordion>
+</AccordionGroup>
+
+<Warning>
+  Nunca utilize credenciais de produção em ambientes de desenvolvimento ou teste, nem credenciais de sandbox em produção.
+</Warning> 

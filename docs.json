@@ -1,54 +1,100 @@
 {
-  "$schema": "https://mintlify.com/docs.json",
+  "$schema": "https://mintlify.com/schema.json",
   "name": "RelaxPay",
+  "description": "Documentação oficial da API RelaxPay para integração de pagamentos PIX",
+  "theme": "mint",
   "logo": {
-    "light": "/logo/light.svg",
-    "dark": "/logo/dark.svg"
+    "light": "/logo/logo.svg",
+    "dark": "/logo/logo.svg"
   },
   "favicon": "/favicon.svg",
   "colors": {
     "primary": "#8b5cf6",
-    "light": "#8b5cf6",
-    "dark": "#8b5cf6",
-    "background": {
-      "light": "#ffffff",
-      "dark": "#111827"
-    },
-    "anchors": {
-      "from": "#8b5cf6",
-      "to": "#6d28d9"
+    "light": "#9e77f7",
+    "dark": "#7a43f3"
+  },
+  "icons": {
+    "library": "fontawesome"
+  },
+  "styling": {
+    "eyebrows": "breadcrumbs",
+    "codeblocks": "system"
+  },
+  "background": {
+    "light": "#ffffff",
+    "dark": "#111827",
+    "decoration": "gradient"
+  },
+  "navbar": {
+    "links": [
+      {
+        "label": "Suporte",
+        "href": "mailto:suporte@relaxpay.app"
+      }
+    ],
+    "primary": {
+      "type": "button",
+      "label": "Dashboard",
+      "href": "https://dashboard.relaxpay.app"
     }
+  },
+  "navigation": {
+    "groups": [
+      {
+        "group": "Começando",
+        "pages": [
+          "introduction",
+          "gateway/authentication",
+          "gateway/environments"
+        ]
+      },
+      {
+        "group": "Gateway PIX",
+        "pages": [
+          "gateway/pix-cash-in",
+          "gateway/pix-cash-out"
+        ]
+      },
+      {
+        "group": "Integrações",
+        "pages": [
+          "gateway/webhooks",
+          "gateway/errors"
+        ]
+      }
+    ]
+  },
+  "footerSocials": {
+    "github": "https://github.com/relaxpay",
+    "twitter": "https://twitter.com/relaxpay_app"
+  },
+  "search": {
+    "prompt": "Buscar na documentação..."
+  },
+  "api": {
+    "baseUrl": "https://sandbox.ws.relaxpay.site",
+    "auth": {
+      "method": "key",
+      "name": "ci",
+      "inputPrefix": "seu-client-id"
+    },
+    "playground": {
+      "mode": "show"
+    }
+  },
+  "openapi": "./api/openapi.yaml",
+  "feedback": {
+    "suggestEdit": true,
+    "raiseIssue": true
   },
   "topbarLinks": [
     {
-      "name": "Suporte",
-      "url": "mailto:suporte@relaxpay.app"
+      "name": "Status",
+      "url": "https://status.relaxpay.app"
     }
   ],
   "topbarCtaButton": {
-    "name": "Dashboard",
-    "url": "https://app.relaxpay.app"
-  },
-  "navigation": [
-    {
-      "group": "Primeiros Passos",
-      "pages": [
-        "introduction",
-        "quickstart"
-      ]
-    },
-    {
-      "group": "API",
-      "pages": [
-        "api-reference/introduction"
-      ]
-    }
-  ],
-  "footerSocials": {
-    "website": "https://relaxpay.app"
-  },
-  "modeToggle": {
-    "default": "light",
-    "isHidden": false
+    "name": "Começar Agora",
+    "url": "https://dashboard.relaxpay.app/register"
   }
 }

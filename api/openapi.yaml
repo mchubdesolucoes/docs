@@ -1,0 +1,409 @@
+openapi: 3.0.0
+info:
+  title: API RelaxPay
+  description: |
+    API RelaxPay para integração de pagamentos PIX. 
+    Com esta API, você pode gerar QR Codes PIX para recebimento (PIX Cash-in) e 
+    realizar transferências PIX para outras contas (PIX Cash-out).
+  version: 1.0.0
+  contact:
+    name: Suporte RelaxPay
+    email: suporte@relaxpay.app
+    url: https://dashboard.relaxpay.app
+servers:
+  - url: https://sandbox.ws.relaxpay.site
+    description: Ambiente de Sandbox (Testes)
+  - url: https://ws.relaxpay.site
+    description: Ambiente de Produção
+security:
+  - clientCredentials: []
+paths:
+  /api/v1/gateway/request-qrcode:
+    post:
+      tags:
+        - PIX Cash-in
+      summary: Gerar QR Code PIX
+      description: Cria um QR Code dinâmico para recebimento de pagamento PIX
+      operationId: createQRCode
+      security:
+        - clientCredentials: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QRCodeRequest'
+            examples:
+              simple:
+                summary: Exemplo Simples
+                value:
+                  requestNumber: "PEDIDO-12345"
+                  dueDate: "2024-12-31"
+                  amount: 100.00
+                  callbackUrl: "https://seu-site.com/webhook/relaxpay"
+              complete:
+                summary: Exemplo Completo
+                value:
+                  requestNumber: "PEDIDO-12345"
+                  dueDate: "2024-12-31"
+                  amount: 100.00
+                  shippingAmount: 12.50
+                  usernameCheckout: "checkout"
+                  callbackUrl: "https://seu-site.com/webhook/relaxpay"
+                  client:
+                    name: "Maria Silva"
+                    taxId: "123.456.789-00"
+                    email: "maria@email.com"
+                  split:
+                    username: "parceiro-abc"
+                    percentageSplit: 10
+      responses:
+        '200':
+          description: QR Code gerado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QRCodeResponse'
+              example:
+                idTransaction: "0b935d10-3c90-4af3-8776-dd18622a7941"
+                paymentCode: "00020101021226890014br.gov.bcb.pix2567brcode-h.sandbox.starkinfra.com/v2/2b625b826e2f40d29e0b71fbc78904795204000053039865802BR5918Suit Business Ltda6007Goiania62070503***6304F01C"
+                response: "OK"
+                paymentCodeBase64: "iVBORw0KGgoAAAANSUhEUgAAAPoAAAD6AQAAAACgl2eQAAACvElEQVR4Xu2YS..."
+        '400':
+          description: Parâmetros inválidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                statusCode: 400
+                error: "Bad Request"
+                message: "INVALID_AMOUNT"
+                details: "O valor informado é inválido"
+        '401':
+          description: Credenciais inválidas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                statusCode: 401
+                error: "Unauthorized"
+                message: "INVALID_CREDENTIALS"
+                details: "As credenciais fornecidas são inválidas"
+  /api/v1/gateway/pix-payment:
+    post:
+      tags:
+        - PIX Cash-out
+      summary: Realizar transferência PIX
+      description: Envia um pagamento PIX para uma chave PIX de destino
+      operationId: pixPayment
+      security:
+        - clientCredentials: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PIXPaymentRequest'
+            examples:
+              simple:
+                summary: Exemplo Simples
+                value:
+                  value: 150.00
+                  key: "62999998888"
+                  typeKey: "phoneNumber"
+                  callbackUrl: "https://seu-site.com/webhook/relaxpay"
+                  externalId: "PAGAMENTO-12345"
+              withValidation:
+                summary: Com Validação de Documento
+                value:
+                  value: 150.00
+                  key: "62999998888"
+                  typeKey: "phoneNumber"
+                  callbackUrl: "https://seu-site.com/webhook/relaxpay"
+                  documentValidation: "123.456.789-00"
+                  externalId: "PAGAMENTO-12345"
+      responses:
+        '200':
+          description: Transferência iniciada com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PIXPaymentResponse'
+              example:
+                idTransaction: "10dc395c-bee0-4368-a980-85a610987e30"
+                response: "OK"
+        '400':
+          description: Parâmetros inválidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                statusCode: 400
+                error: "Bad Request"
+                message: "PIX_KEY_NOT_FOUND"
+                details: "A chave PIX informada não foi encontrada"
+        '401':
+          description: Credenciais inválidas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                statusCode: 401
+                error: "Unauthorized"
+                message: "UNAUTHORIZED_IP"
+                details: "O IP que está tentando realizar a operação não está autorizado"
+        '422':
+          description: Erro de processamento
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                statusCode: 422
+                error: "Unprocessable Entity"
+                message: "NO_FUNDS"
+                details: "Saldo insuficiente para realizar a transferência"
+  /api/v1/webhooks/register:
+    post:
+      tags:
+        - Webhooks
+      summary: Registrar URL de Webhook
+      description: Cadastra uma nova URL para receber notificações de eventos
+      operationId: registerWebhook
+      security:
+        - clientCredentials: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WebhookRegisterRequest'
+            example:
+              url: "https://seu-site.com/webhook/relaxpay"
+              events: ["payment.received", "payment.refunded", "transfer.completed"]
+      responses:
+        '200':
+          description: Webhook registrado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WebhookRegisterResponse'
+              example:
+                id: "5f9c4a3b2d1e0f8c7b6a5d4c"
+                url: "https://seu-site.com/webhook/relaxpay"
+                events: ["payment.received", "payment.refunded", "transfer.completed"]
+                status: "active"
+        '400':
+          description: Parâmetros inválidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                statusCode: 400
+                error: "Bad Request"
+                message: "INVALID_CALLBACK_URL"
+                details: "A URL de callback informada é inválida"
+components:
+  schemas:
+    QRCodeRequest:
+      type: object
+      required:
+        - requestNumber
+        - dueDate
+        - amount
+        - callbackUrl
+      properties:
+        requestNumber:
+          type: string
+          description: Número do pedido/requisição em seu sistema
+          example: "PEDIDO-12345"
+        dueDate:
+          type: string
+          format: date
+          description: Data de vencimento do QR Code no formato AAAA-MM-DD
+          example: "2024-12-31"
+        amount:
+          type: number
+          format: float
+          description: Valor da transação em reais
+          example: 100.00
+        shippingAmount:
+          type: number
+          format: float
+          description: Valor do frete (opcional)
+          example: 12.50
+        usernameCheckout:
+          type: string
+          description: Username associado ao checkout (opcional)
+          example: "checkout"
+        callbackUrl:
+          type: string
+          format: uri
+          description: URL para receber notificações de pagamento
+          example: "https://seu-site.com/webhook/relaxpay"
+        client:
+          type: object
+          description: Dados do cliente (opcional)
+          properties:
+            name:
+              type: string
+              description: Nome completo do cliente
+              example: "Maria Silva"
+            taxId:
+              type: string
+              description: CPF/CNPJ do cliente
+              example: "123.456.789-00"
+            email:
+              type: string
+              format: email
+              description: Email do cliente
+              example: "maria@email.com"
+        split:
+          type: object
+          description: Configuração de split de pagamento (opcional)
+          properties:
+            username:
+              type: string
+              description: Username do beneficiário do split
+              example: "parceiro-abc"
+            percentageSplit:
+              type: number
+              description: Percentual destinado ao beneficiário (1-100)
+              minimum: 1
+              maximum: 100
+              example: 10
+    QRCodeResponse:
+      type: object
+      properties:
+        idTransaction:
+          type: string
+          description: Identificador único da transação na RelaxPay
+          example: "0b935d10-3c90-4af3-8776-dd18622a7941"
+        paymentCode:
+          type: string
+          description: Código PIX copia e cola para pagamento
+          example: "00020101021226890014br.gov.bcb.pix2567brcode-h.sandbox.starkinfra.com/v2/2b625b826e2f40d29e0b71fbc78904795204000053039865802BR5918Suit Business Ltda6007Goiania62070503***6304F01C"
+        response:
+          type: string
+          description: Status da requisição (OK, ERROR)
+          example: "OK"
+        paymentCodeBase64:
+          type: string
+          description: Imagem do QR Code em formato base64
+          example: "iVBORw0KGgoAAAANSUhEUgAAAPoAAAD6AQAAAACgl2eQAAACvElEQVR4Xu2YS..."
+    PIXPaymentRequest:
+      type: object
+      required:
+        - value
+        - key
+        - typeKey
+        - callbackUrl
+      properties:
+        value:
+          type: number
+          format: float
+          description: Valor da transferência em reais
+          example: 150.00
+        key:
+          type: string
+          description: Chave PIX do destinatário
+          example: "62999998888"
+        typeKey:
+          type: string
+          description: Tipo da chave PIX
+          enum: [document, phoneNumber, email, randomKey, paymentCode]
+          example: "phoneNumber"
+        callbackUrl:
+          type: string
+          format: uri
+          description: URL para receber notificações sobre o pagamento
+          example: "https://seu-site.com/webhook/relaxpay"
+        documentValidation:
+          type: string
+          description: CPF/CNPJ para validar se pertence à chave PIX informada (opcional)
+          example: "123.456.789-00"
+        externalId:
+          type: string
+          description: ID para controle de duplicidade em seu sistema (opcional)
+          example: "PAGAMENTO-12345"
+    PIXPaymentResponse:
+      type: object
+      properties:
+        idTransaction:
+          type: string
+          description: Identificador único da transação na RelaxPay
+          example: "10dc395c-bee0-4368-a980-85a610987e30"
+        response:
+          type: string
+          description: Status da requisição (OK, ERROR, etc)
+          example: "OK"
+    WebhookRegisterRequest:
+      type: object
+      required:
+        - url
+        - events
+      properties:
+        url:
+          type: string
+          format: uri
+          description: URL do seu endpoint que vai receber as notificações
+          example: "https://seu-site.com/webhook/relaxpay"
+        events:
+          type: array
+          description: Lista de eventos que deseja receber notificações
+          items:
+            type: string
+            enum: [payment.received, payment.refunded, payment.expired, transfer.completed, transfer.failed, transfer.returned]
+          example: ["payment.received", "payment.refunded", "transfer.completed"]
+    WebhookRegisterResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Identificador único do webhook
+          example: "5f9c4a3b2d1e0f8c7b6a5d4c"
+        url:
+          type: string
+          format: uri
+          description: URL cadastrada
+          example: "https://seu-site.com/webhook/relaxpay"
+        events:
+          type: array
+          description: Lista de eventos que receberão notificações
+          items:
+            type: string
+          example: ["payment.received", "payment.refunded", "transfer.completed"]
+        status:
+          type: string
+          description: Status do webhook (active, inactive)
+          example: "active"
+    ErrorResponse:
+      type: object
+      properties:
+        statusCode:
+          type: integer
+          description: Código de status HTTP
+          example: 400
+        error:
+          type: string
+          description: Tipo de erro HTTP
+          example: "Bad Request"
+        message:
+          type: string
+          description: Código de erro específico da API
+          example: "INVALID_AMOUNT"
+        details:
+          type: string
+          description: Descrição detalhada do erro
+          example: "O valor informado é inválido"
+  securitySchemes:
+    clientCredentials:
+      type: apiKey
+      name: ci
+      in: header
+      description: Client ID para autenticação. Use junto com o cabeçalho 'cs' para o Client Secret. 

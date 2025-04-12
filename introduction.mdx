@@ -1,22 +1,314 @@
 ---
-title: 'Introdução'
-description: 'Bem-vindo à documentação da RelaxPay'
+title: "Bem-vindo(a) ao RelaxPay"
+description: "A maneira mais simples de integrar pagamentos PIX à sua aplicação"
+icon: "gem"
 ---
 
-# Seja bem-vindo à RelaxPay
+<Note>
+  Bem-vindo à documentação do RelaxPay! Aqui você encontra tudo o que precisa para integrar nossa API de pagamentos PIX de forma rápida e eficiente.
+</Note>
 
-A RelaxPay é um gateway de pagamento moderno e intuitivo, criado para simplificar a integração de pagamentos em sua aplicação.
+## Por que usar nosso Gateway?
 
-## Por que escolher a RelaxPay?
+<CardGroup cols={2}>
+  <Card title="Integração Rápida" icon="bolt" color="#4CAF50" href="/gateway/authentication">
+    API simples e intuitiva com documentação completa
+  </Card>
+  <Card title="Segurança" icon="shield" color="#2196F3" href="/gateway/environments">
+    Criptografia de ponta a ponta e validação de assinaturas
+  </Card>
+  <Card title="Webhooks" icon="bell" color="#FFC107" href="/gateway/webhooks">
+    Notificações em tempo real para eventos importantes
+  </Card>
+  <Card title="Monitoramento" icon="chart-line" color="#9C27B0">
+    Dashboard completo com análises detalhadas
+  </Card>
+  <Card title="Suporte" icon="headset" color="#F44336">
+    Atendimento dedicado pelos nossos especialistas
+  </Card>
+</CardGroup>
 
-- **Simplicidade**: API clara e direta
-- **Segurança**: Processamento de pagamentos seguro e confiável
-- **Flexibilidade**: Suporte a múltiplos métodos de pagamento
-- **Suporte**: Atendimento rápido e eficiente
+## Recursos Disponíveis
 
-## Começando
+<CardGroup cols={2}>
+  <Card title="PIX Cash-in" icon="arrow-down" color="#4CAF50" href="/gateway/pix-cash-in">
+    Receba pagamentos via PIX:
+    - Geração de QR Code dinâmico
+    - Confirmação automática de pagamentos
+    - Notificações em tempo real
+  </Card>
+  <Card title="PIX Cash-out" icon="arrow-up" color="#F44336" href="/gateway/pix-cash-out">
+    Envie pagamentos via PIX:
+    - Transferências instantâneas
+    - Validação de chaves PIX
+    - Controle de duplicidade
+  </Card>
+</CardGroup>
 
-Para começar a usar a RelaxPay, siga nosso [guia de início rápido](/quickstart).
+## Teste Rápido de Integração
 
-Qualquer dúvida, entre em contato conosco:
-📧 **suporte@relaxpay.app**
+<Frame>
+  <div style={{ padding: '20px', borderRadius: '8px', backgroundColor: '#f9f9f9' }}>
+    <h3>Testador de API</h3>
+    <p>Experimente nossa API sem precisar escrever código</p>
+  </div>
+</Frame>
+
+### Criar um QR Code PIX (Cash-in)
+
+<Tabs>
+  <Tab title="Request">
+    <ParamField body="amount" type="number" required>
+      Valor da transação em reais
+    </ParamField>
+    <ParamField body="dueDate" type="string" required>
+      Data de vencimento (AAAA-MM-DD)
+    </ParamField>
+    <ParamField body="callbackUrl" type="string" required>
+      URL para receber notificações
+    </ParamField>
+    
+    <Button>Gerar QR Code</Button>
+  </Tab>
+  <Tab title="Response">
+    <ResponseField name="Exemplo de resposta" type="object">
+      ```json
+      {
+        "idTransaction": "0b935d10-3c90-4af3-8776-dd18622a7941",
+        "paymentCode": "00020101021226890014br.gov.bcb.pix...",
+        "response": "OK",
+        "paymentCodeBase64": "iVBORw0KGgoAAAANSUhEUgAAA..."
+      }
+      ```
+    </ResponseField>
+  </Tab>
+</Tabs>
+
+## Ambiente e Endpoints
+
+<Tabs>
+  <Tab title="Sandbox">
+    ```bash
+    https://sandbox.ws.relaxpay.site
+    ```
+    <Check>
+      Ambiente de testes com dados fictícios, perfeito para desenvolvimento
+    </Check>
+  </Tab>
+  <Tab title="Produção">
+    ```bash
+    https://ws.relaxpay.site
+    ```
+    <Check>
+      Ambiente de produção com transações reais
+    </Check>
+  </Tab>
+</Tabs>
+
+<Note>
+  Saiba mais sobre nossos ambientes na [página de Ambientes](/gateway/environments).
+</Note>
+
+## Exemplo de Implementação
+
+<CodeGroup>
+  <Code title="JavaScript" active>
+    ```javascript
+    // Exemplo de geração de QR Code PIX
+    async function gerarQrCode() {
+      try {
+        const response = await fetch('https://sandbox.ws.relaxpay.site/api/v1/gateway/request-qrcode', {
+          method: 'POST',
+          headers: {
+            'ci': 'seu-client-id',
+            'cs': 'seu-client-secret',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            amount: 100.00,
+            dueDate: '2024-12-31',
+            callbackUrl: 'https://seu-site.com/webhook/relaxpay'
+          })
+        });
+        
+        const data = await response.json();
+        console.log('QR Code gerado:', data);
+        
+        // Exibe o QR Code para o cliente
+        exibirQrCode(data.paymentCodeBase64);
+      } catch (error) {
+        console.error('Erro ao gerar QR Code:', error);
+      }
+    }
+    ```
+  </Code>
+  <Code title="PHP">
+    ```php
+    <?php
+    // Exemplo de geração de QR Code PIX
+    function gerarQrCode() {
+      $ch = curl_init();
+      
+      curl_setopt_array($ch, [
+        CURLOPT_URL => 'https://sandbox.ws.relaxpay.site/api/v1/gateway/request-qrcode',
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_POST => true,
+        CURLOPT_HTTPHEADER => [
+          'ci: seu-client-id',
+          'cs: seu-client-secret',
+          'Content-Type: application/json'
+        ],
+        CURLOPT_POSTFIELDS => json_encode([
+          'amount' => 100.00,
+          'dueDate' => '2024-12-31',
+          'callbackUrl' => 'https://seu-site.com/webhook/relaxpay'
+        ])
+      ]);
+      
+      $response = curl_exec($ch);
+      $data = json_decode($response, true);
+      
+      // Exibe o QR Code para o cliente
+      echo '<img src="data:image/png;base64,' . $data['paymentCodeBase64'] . '" />';
+    }
+    ```
+  </Code>
+  <Code title="Python">
+    ```python
+    import requests
+    import json
+    
+    # Exemplo de geração de QR Code PIX
+    def gerar_qr_code():
+        try:
+            response = requests.post(
+                'https://sandbox.ws.relaxpay.site/api/v1/gateway/request-qrcode',
+                headers={
+                    'ci': 'seu-client-id',
+                    'cs': 'seu-client-secret',
+                    'Content-Type': 'application/json'
+                },
+                json={
+                    'amount': 100.00,
+                    'dueDate': '2024-12-31',
+                    'callbackUrl': 'https://seu-site.com/webhook/relaxpay'
+                }
+            )
+            
+            data = response.json()
+            print('QR Code gerado:', data['idTransaction'])
+            
+            # Exibe o QR Code para o cliente
+            return data['paymentCodeBase64']
+        except Exception as e:
+            print('Erro ao gerar QR Code:', str(e))
+    ```
+  </Code>
+  <Code title="C#">
+    ```csharp
+    using System;
+    using System.Net.Http;
+    using System.Text;
+    using System.Threading.Tasks;
+    using Newtonsoft.Json;
+    
+    public class RelaxPayClient
+    {
+        private readonly HttpClient _client = new HttpClient();
+        
+        public async Task<string> GerarQrCodeAsync()
+        {
+            var request = new
+            {
+                amount = 100.00,
+                dueDate = "2024-12-31",
+                callbackUrl = "https://seu-site.com/webhook/relaxpay"
+            };
+            
+            var content = new StringContent(
+                JsonConvert.SerializeObject(request),
+                Encoding.UTF8,
+                "application/json");
+                
+            _client.DefaultRequestHeaders.Add("ci", "seu-client-id");
+            _client.DefaultRequestHeaders.Add("cs", "seu-client-secret");
+            
+            var response = await _client.PostAsync(
+                "https://sandbox.ws.relaxpay.site/api/v1/gateway/request-qrcode", 
+                content);
+                
+            var responseContent = await response.Content.ReadAsStringAsync();
+            dynamic data = JsonConvert.DeserializeObject(responseContent);
+            
+            // Exibe o QR Code para o cliente
+            return data.paymentCodeBase64;
+        }
+    }
+    ```
+  </Code>
+</CodeGroup>
+
+## Fluxo de Integração
+
+<Steps>
+  <Step title="Autenticação" icon="key">
+    Obtenha suas credenciais de API no [Dashboard RelaxPay](https://dashboard.relaxpay.app)
+    
+    <Frame>
+      <img src="/images/auth-dashboard.png" alt="Tela do Dashboard para obtenção de credenciais" />
+    </Frame>
+  </Step>
+  <Step title="Implementação" icon="code">
+    Desenvolva sua integração usando nossos exemplos de código e testando no ambiente sandbox
+    
+    <Note>
+      Configure webhooks para receber notificações de pagamentos automaticamente.
+      [Saiba mais sobre webhooks](/gateway/webhooks)
+    </Note>
+  </Step>
+  <Step title="Testes" icon="flask">
+    Realize testes completos no ambiente sandbox antes de migrar para produção
+    
+    <CodeGroup>
+      <Code title="Teste de Webhook" active>
+        ```bash
+        # Substitua com seu Client Secret
+        SECRET="seu-client-secret"
+        
+        # Crie o payload
+        PAYLOAD='{"event":"payment.received","data":{"idTransaction":"test-123"}}'
+        
+        # Calcule a assinatura
+        SIGNATURE=$(echo -n "$PAYLOAD" | openssl dgst -sha256 -hmac "$SECRET" | awk '{print $2}')
+        
+        # Envie para seu endpoint
+        curl -X POST https://seu-site.com/webhook/relaxpay \
+          -H "Content-Type: application/json" \
+          -H "X-Signature: $SIGNATURE" \
+          -d "$PAYLOAD"
+        ```
+      </Code>
+    </CodeGroup>
+  </Step>
+  <Step title="Produção" icon="rocket">
+    Após validar sua integração, solicite credenciais de produção e atualize os endpoints em sua aplicação
+  </Step>
+</Steps>
+
+## Recursos Adicionais
+
+<CardGroup cols={3}>
+  <Card title="Webhooks" icon="bell" href="/gateway/webhooks">
+    Notificações em tempo real
+  </Card>
+  <Card title="Erros" icon="triangle-exclamation" href="/gateway/errors">
+    Códigos de erro e soluções
+  </Card>
+  <Card title="Ambientes" icon="server" href="/gateway/environments">
+    Sandbox e Produção
+  </Card>
+</CardGroup>
+
+<Warning>
+  Sempre teste suas integrações no ambiente sandbox antes de migrar para produção.
+</Warning> 

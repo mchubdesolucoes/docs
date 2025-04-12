@@ -1,0 +1,152 @@
+# Gateway
+
+Bem-vindo à documentação do Gateway RelaxPay! Aqui você encontra tudo o que precisa para integrar sua API de forma rápida e eficiente.
+
+## Por que usar nosso Gateway?
+
+<CardGroup cols={2}>
+  <Card title="Integração Rápida" icon="bolt">
+    API simples e intuitiva
+  </Card>
+  <Card title="Segurança" icon="shield">
+    Criptografia de ponta a ponta
+  </Card>
+  <Card title="Webhooks" icon="bell">
+    Notificações em tempo real
+  </Card>
+  <Card title="Monitoramento" icon="chart-line">
+    Dashboard completo
+  </Card>
+  <Card title="Suporte" icon="headset">
+    Atendimento dedicado
+  </Card>
+</CardGroup>
+
+## Recursos Disponíveis
+
+<CardGroup cols={2}>
+  <Card title="PIX Cash-in" icon="arrow-down">
+    Receba pagamentos via PIX:
+    - Geração de QR Code
+    - Recebimento de pagamentos
+    - Webhooks para status
+  </Card>
+  <Card title="PIX Cash-out" icon="arrow-up">
+    Envie pagamentos via PIX:
+    - Transferências via PIX
+    - Validação de documentos
+    - Controle de duplicidade
+  </Card>
+</CardGroup>
+
+## Ambiente e Endpoints
+
+<Tabs>
+  <Tab title="Sandbox">
+    ```bash
+    https://sandbox.ws.relaxpay.site
+    ```
+    Ambiente de testes com dados fictícios
+  </Tab>
+  <Tab title="Produção">
+    ```bash
+    https://ws.relaxpay.site
+    ```
+    Ambiente real com cobranças efetivas
+  </Tab>
+</Tabs>
+
+## Autenticação
+
+<Steps>
+  <Step title="Gere suas chaves">
+    Acesse o portal do cliente
+  </Step>
+  <Step title="Configure o Checkout">
+    Vá para GATEWAY/CHECKOUT > Checkout
+  </Step>
+  <Step title="Obtenha as credenciais">
+    Gere Client ID (ci) e Client Secret (cs)
+  </Step>
+  <Step title="Use nos cabeçalhos">
+    ```http
+    ci: seu-client-id
+    cs: seu-client-secret
+    ```
+  </Step>
+</Steps>
+
+## Códigos de Retorno
+
+<ResponseField name="200" type="success">
+  Sucesso na operação
+</ResponseField>
+
+<ResponseField name="401" type="error">
+  Falha na autenticação
+</ResponseField>
+
+<ResponseField name="400" type="error">
+  Erro na solicitação
+</ResponseField>
+
+<ResponseField name="500" type="error">
+  Erro interno
+</ResponseField>
+
+## Exemplo de Uso
+
+<CodeGroup>
+  ```javascript JavaScript
+  // Exemplo de requisição PIX Cash-in
+  const response = await fetch('https://ws.relaxpay.site/api/v1/gateway/request-qrcode', {
+    method: 'POST',
+    headers: {
+      'ci': 'seu-client-id',
+      'cs': 'seu-client-secret'
+    },
+    body: JSON.stringify({
+      amount: 100.00,
+      callbackUrl: 'https://seu-webhook.com'
+    })
+  });
+  ```
+</CodeGroup>
+
+## Webhooks
+
+<Steps>
+  <Step title="Configure o endpoint">
+    Crie um endpoint para receber requisições POST
+  </Step>
+  <Step title="Defina a URL">
+    Configure a URL do webhook nas suas requisições
+  </Step>
+  <Step title="Processe notificações">
+    Atualize o status das transações
+  </Step>
+  <Step title="Valide assinaturas">
+    Garanta a autenticidade das notificações
+  </Step>
+</Steps>
+
+## Próximos Passos
+
+<Steps>
+  <Step title="Configure suas chaves" icon="key">
+    Obtenha suas credenciais
+  </Step>
+  <Step title="Teste no sandbox" icon="flask">
+    Ambiente de desenvolvimento
+  </Step>
+  <Step title="Implemente endpoints" icon="code">
+    Integre com sua aplicação
+  </Step>
+  <Step title="Vá para produção" icon="rocket">
+    Comece a operar
+  </Step>
+</Steps>
+
+<Warning>
+  Sempre teste suas integrações no ambiente sandbox antes de migrar para produção.
+</Warning> 
