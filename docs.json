@@ -1,7 +1,11 @@
 {
   "$schema": "https://mintlify.com/docs.json",
-  "theme": "mint",
   "name": "RelaxPay",
+  "logo": {
+    "light": "/logo/light.svg",
+    "dark": "/logo/dark.svg"
+  },
+  "favicon": "/favicon.svg",
   "colors": {
     "primary": "#8b5cf6",
     "light": "#f3f4f6",
@@ -9,35 +13,47 @@
     "background": {
       "light": "#ffffff",
       "dark": "#111827"
+    },
+    "anchors": {
+      "from": "#8b5cf6",
+      "to": "#6d28d9"
     }
   },
-  "favicon": "/favicon.svg",
-  "navigation": [
+  "topbarLinks": [
     {
-      "group": "Primeiros Passos",
-      "pages": [
-        "introduction",
-        "quickstart"
-      ]
-    },
-    {
-      "group": "API",
-      "pages": [
-        "api-reference/introduction"
-      ]
+      "name": "Suporte",
+      "url": "mailto:suporte@relaxpay.app"
     }
   ],
-  "logo": {
-    "light": "/logo/logo.png",
-    "dark": "/logo/logo.png"
+  "topbarCtaButton": {
+    "name": "Dashboard",
+    "url": "https://app.relaxpay.app"
   },
-  "navbar": {
-    "links": [
+  "navigation": {
+    "tabs": [
       {
-        "label": "Suporte",
-        "href": "mailto:suporte@relaxpay.app"
+        "name": "Documentação",
+        "url": "docs",
+        "groups": [
+          {
+            "name": "Primeiros Passos",
+            "pages": [
+              "introduction",
+              "quickstart"
+            ]
+          },
+          {
+            "name": "API",
+            "pages": [
+              "api-reference/introduction"
+            ]
+          }
+        ]
       }
     ]
+  },
+  "footerSocials": {
+    "website": "https://relaxpay.app"
   },
   "modeToggle": {
     "default": "light",
