@@ -1,0 +1,665 @@
+openapi: 3.0.0
+info:
+  title: RelaxPay API
+  description: |
+    API para integração de pagamentos PIX
+
+    ## Versões da API
+
+    ### v1 - Versão Atual
+    - Autenticação via headers `ci` e `cs`
+    - Endpoints com prefixo `/api/v1/gateway/`
+
+    ### v2 - Nova Versão
+    - Autenticação via Bearer token usando o Client Secret (cs) como token
+    - Endpoints com prefixo `/api/v2/gateway/`
+    - Mesmas funcionalidades da v1, mas com método de autenticação alternativo
+
+    Ambas as versões seguirão funcionando em paralelo, mas recomendamos o uso da v2 para novos desenvolvimentos.
+  version: 2.0.0
+  contact:
+    name: Suporte RelaxPay
+    email: suporte@relaxpay.app
+    url: https://relaxpay.app
+
+servers:
+- url: https://sandbox.ws.relaxpay.site
+  description: Ambiente de sandbox para testes
+- url: https://ws.relaxpay.site
+  description: Ambiente de produção
+
+tags:
+- name: v1
+  description: API v1 - Autenticação via headers ci e cs (versão atual)
+- name: v2
+  description: API v2 - Autenticação via Bearer token usando Client Secret (nova versão)
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: Token de autenticação Bearer usando o Client Secret para a versão v2 da API
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        statusCode:
+          type: integer
+          example: 400
+        error:
+          type: string
+          example: Bad Request
+        message:
+          type: string
+          example: INVALID_AMOUNT
+        details:
+          type: string
+          example: O valor informado é inválido
+
+    QRCodeRequest:
+      type: object
+      required:
+      - requestNumber
+      - dueDate
+      - amount
+      - callbackUrl
+      properties:
+        requestNumber:
+          type: string
+          description: Identificador único do pedido
+          example: PEDIDO-12345
+        dueDate:
+          type: string
+          format: date
+          description: Data de vencimento do QR Code
+          example: 2024-12-31
+        amount:
+          type: number
+          format: float
+          description: Valor do pagamento
+          example: 100.00
+        shippingAmount:
+          type: number
+          format: float
+          description: Valor do frete
+          example: 10.00
+        usernameCheckout:
+          type: string
+          description: Usuário do checkout
+          example: usuario123
+        callbackUrl:
+          type: string
+          format: uri
+          description: URL para notificações
+          example: https://seu-site.com/webhook/relaxpay
+        client:
+          type: object
+          properties:
+            name:
+              type: string
+              description: Nome do cliente
+              example: João Silva
+            taxId:
+              type: string
+              description: CPF/CNPJ do cliente
+              example: 123.456.789-00
+            email:
+              type: string
+              format: email
+              description: Email do cliente
+              example: joao@exemplo.com
+        split:
+          type: object
+          properties:
+            username:
+              type: string
+              description: Usuário do parceiro
+              example: parceiro123
+            percentageSplit:
+              type: number
+              format: float
+              description: Percentual do split
+              example: 10.0
+
+    QRCodeResponse:
+      type: object
+      properties:
+        idTransaction:
+          type: string
+          format: uuid
+          description: ID da transação PIX
+          example: 0b935d10-3c90-4af3-8776-dd18622a7941
+        paymentCode:
+          type: string
+          description: Código PIX em formato copia e cola
+          example: 00020101021226890014br.gov.bcb.pix...
+        paymentCodeBase64:
+          type: string
+          description: QR Code em formato Base64
+          example: iVBORw0KGgoAAAANSUhEUgAAAPoAAAD6AQ...
+        response:
+          type: string
+          description: Status da resposta
+          example: OK
+        expiresAt:
+          type: string
+          format: date-time
+          description: Data e hora de expiração do QR Code
+          example: 2024-12-31T23:59:59Z
+
+    PaymentStatus:
+      type: object
+      properties:
+        idTransaction:
+          type: string
+          format: uuid
+          description: ID da transação PIX
+          example: 0b935d10-3c90-4af3-8776-dd18622a7941
+        status:
+          type: string
+          enum: [ PENDING, PAID, EXPIRED, CANCELLED, REFUNDED ]
+          description: Status do pagamento
+          example: PAID
+        amount:
+          type: number
+          format: float
+          description: Valor do pagamento
+          example: 100.00
+        paidAt:
+          type: string
+          format: date-time
+          description: Data e hora do pagamento
+          example: 2024-12-15T14:30:45Z
+        response:
+          type: string
+          description: Status da resposta
+          example: OK
+
+    PixPaymentRequest:
+      type: object
+      required:
+      - value
+      - key
+      - typeKey
+      - callbackUrl
+      properties:
+        value:
+          type: number
+          format: float
+          description: Valor da transferência
+          example: 150.00
+        key:
+          type: string
+          description: Chave PIX de destino
+          example: 62999998888
+        typeKey:
+          type: string
+          enum: [ document, phoneNumber, email, randomKey, paymentCode ]
+          description: Tipo da chave PIX
+          example: phoneNumber
+        callbackUrl:
+          type: string
+          format: uri
+          description: URL para notificações
+          example: https://seu-site.com/webhook/relaxpay
+        externalId:
+          type: string
+          description: Identificador externo
+          example: PAGAMENTO-12345
+        documentValidation:
+          type: string
+          description: CPF/CNPJ para validação
+          example: 123.456.789-00
+
+    PixPaymentResponse:
+      type: object
+      properties:
+        idTransaction:
+          type: string
+          format: uuid
+          description: ID da transação PIX
+          example: 10dc395c-bee0-4368-a980-85a610987e30
+        status:
+          type: string
+          enum: [ PROCESSING, COMPLETED, FAILED ]
+          description: Status da transferência
+          example: PROCESSING
+        response:
+          type: string
+          description: Status da resposta
+          example: OK
+
+    RefundRequest:
+      type: object
+      required:
+      - originalTransactionId
+      - refundReason
+      - callbackUrl
+      properties:
+        originalTransactionId:
+          type: string
+          format: uuid
+          description: ID da transação original
+          example: 0b935d10-3c90-4af3-8776-dd18622a7941
+        refundReason:
+          type: string
+          description: Motivo do reembolso
+          example: Cancelamento solicitado pelo cliente
+        callbackUrl:
+          type: string
+          format: uri
+          description: URL para notificações
+          example: https://seu-site.com/webhook/relaxpay
+        amount:
+          type: number
+          format: float
+          description: Valor do reembolso (para reembolso parcial)
+          example: 50.00
+
+    RefundResponse:
+      type: object
+      properties:
+        idTransaction:
+          type: string
+          format: uuid
+          description: ID da transação de reembolso
+          example: 3f8b2a5c-9e47-4d98-b6a1-7c432f89e21b
+        originalTransactionId:
+          type: string
+          format: uuid
+          description: ID da transação original
+          example: 0b935d10-3c90-4af3-8776-dd18622a7941
+        amount:
+          type: number
+          format: float
+          description: Valor do reembolso
+          example: 100.00
+        status:
+          type: string
+          enum: [ PROCESSING, COMPLETED, FAILED ]
+          description: Status do reembolso
+          example: PROCESSING
+        response:
+          type: string
+          description: Status da resposta
+          example: OK
+
+paths:
+  # Versão 1 (v1) - Autenticação via headers ci e cs
+  /api/v1/gateway/request-qrcode:
+    post:
+      tags:
+      - v1
+      summary: Gera um QR Code PIX para recebimento de pagamento
+      description: Cria um QR Code dinâmico para recebimento de pagamento PIX
+      operationId: generateQRCodeV1
+      parameters:
+      - name: ci
+        in: header
+        required: true
+        schema:
+          type: string
+        description: Client ID para autenticação
+      - name: cs
+        in: header
+        required: true
+        schema:
+          type: string
+        description: Client Secret para autenticação
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QRCodeRequest'
+      responses:
+        '200':
+          description: QR Code gerado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QRCodeResponse'
+        '400':
+          description: Parâmetros inválidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Credenciais inválidas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Erro de processamento
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/v1/gateway/check-payment:
+    get:
+      tags:
+      - v1
+      summary: Verifica o status de um pagamento PIX
+      description: Retorna o status atual de um pagamento PIX
+      operationId: checkPaymentV1
+      parameters:
+      - name: ci
+        in: header
+        required: true
+        schema:
+          type: string
+        description: Client ID para autenticação
+      - name: cs
+        in: header
+        required: true
+        schema:
+          type: string
+        description: Client Secret para autenticação
+      - name: idTransaction
+        in: query
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: ID da transação PIX
+      responses:
+        '200':
+          description: Status do pagamento
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentStatus'
+        '400':
+          description: Parâmetros inválidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Credenciais inválidas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Transação não encontrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/v1/gateway/pix-payment:
+    post:
+      tags:
+      - v1
+      summary: Realiza uma transferência PIX
+      description: Envia um pagamento PIX para uma chave PIX de destino
+      operationId: sendPixPaymentV1
+      parameters:
+      - name: ci
+        in: header
+        required: true
+        schema:
+          type: string
+        description: Client ID para autenticação
+      - name: cs
+        in: header
+        required: true
+        schema:
+          type: string
+        description: Client Secret para autenticação
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PixPaymentRequest'
+      responses:
+        '200':
+          description: Transferência iniciada com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PixPaymentResponse'
+        '400':
+          description: Parâmetros inválidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Credenciais inválidas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Erro de processamento
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/v1/gateway/pix-refund:
+    post:
+      tags:
+      - v1
+      summary: Realiza um reembolso PIX
+      description: Reembolsa um pagamento PIX anteriormente recebido
+      operationId: refundPixPaymentV1
+      parameters:
+      - name: ci
+        in: header
+        required: true
+        schema:
+          type: string
+        description: Client ID para autenticação
+      - name: cs
+        in: header
+        required: true
+        schema:
+          type: string
+        description: Client Secret para autenticação
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefundRequest'
+      responses:
+        '200':
+          description: Reembolso iniciado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RefundResponse'
+        '400':
+          description: Parâmetros inválidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Credenciais inválidas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Erro de processamento
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  # Versão 2 (v2) - Autenticação via Bearer token
+  /api/v2/gateway/request-qrcode:
+    post:
+      tags:
+      - v2
+      summary: Gera um QR Code PIX para recebimento de pagamento
+      description: Cria um QR Code dinâmico para recebimento de pagamento PIX
+      operationId: generateQRCodeV2
+      security:
+      - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QRCodeRequest'
+      responses:
+        '200':
+          description: QR Code gerado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QRCodeResponse'
+        '400':
+          description: Parâmetros inválidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Credenciais inválidas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Erro de processamento
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/v2/gateway/check-payment:
+    get:
+      tags:
+      - v2
+      summary: Verifica o status de um pagamento PIX
+      description: Retorna o status atual de um pagamento PIX
+      operationId: checkPaymentV2
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: idTransaction
+        in: query
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: ID da transação PIX
+      responses:
+        '200':
+          description: Status do pagamento
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentStatus'
+        '400':
+          description: Parâmetros inválidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Credenciais inválidas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Transação não encontrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/v2/gateway/pix-payment:
+    post:
+      tags:
+      - v2
+      summary: Realiza uma transferência PIX
+      description: Envia um pagamento PIX para uma chave PIX de destino
+      operationId: sendPixPaymentV2
+      security:
+      - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PixPaymentRequest'
+      responses:
+        '200':
+          description: Transferência iniciada com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PixPaymentResponse'
+        '400':
+          description: Parâmetros inválidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Credenciais inválidas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Erro de processamento
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/v2/gateway/pix-refund:
+    post:
+      tags:
+      - v2
+      summary: Realiza um reembolso PIX
+      description: Reembolsa um pagamento PIX anteriormente recebido
+      operationId: refundPixPaymentV2
+      security:
+      - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefundRequest'
+      responses:
+        '200':
+          description: Reembolso iniciado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RefundResponse'
+        '400':
+          description: Parâmetros inválidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Credenciais inválidas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Erro de processamento
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'

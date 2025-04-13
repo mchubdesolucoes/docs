@@ -1,0 +1,163 @@
+---
+title: "Bem-vindo(a) ao RelaxPay"
+description: "Integração segura com autenticação via Bearer token"
+icon: "gem"
+---
+
+<Note>
+  Bem-vindo à documentação da API RelaxPay v2! Esta versão utiliza autenticação via Bearer token, proporcionando uma camada adicional de segurança e flexibilidade para sua integração.
+</Note>
+
+## Visão Geral da API v2
+
+A API v2 do RelaxPay oferece uma solução completa para integração de pagamentos PIX em suas aplicações, com autenticação via Bearer token. Todos os endpoints começam com o prefixo `/api/v2/gateway/`.
+
+<CardGroup cols={2}>
+  <Card title="Autenticação Bearer" icon="key" color="#2196F3">
+    Use seu Client Secret como Bearer token:
+    ```http
+    Authorization: Bearer seu-client-secret
+    ```
+  </Card>
+  <Card title="Segurança Avançada" icon="shield" color="#4CAF50">
+    Método padronizado de autenticação seguindo boas práticas de segurança
+  </Card>
+</CardGroup>
+
+## Recursos Disponíveis
+
+<CardGroup cols={2}>
+  <Card title="PIX Cash-in" icon="arrow-down" color="#4CAF50" href="/v2/gateway/pix-cash-in">
+    Receba pagamentos via PIX:
+    - Geração de QR Code dinâmico
+    - Confirmação automática de pagamentos
+    - Notificações em tempo real
+  </Card>
+  <Card title="PIX Cash-out" icon="arrow-up" color="#F44336" href="/v2/gateway/pix-cash-out">
+    Envie pagamentos via PIX:
+    - Transferências instantâneas
+    - Validação de chaves PIX
+    - Controle de duplicidade
+  </Card>
+</CardGroup>
+
+## Processo de Autenticação
+
+<Steps>
+  <Step title="Obtenha suas Credenciais" icon="id-card">
+    Acesse o [Dashboard RelaxPay](https://dashboard.relaxpay.app) e obtenha seu Client ID e Client Secret
+  </Step>
+  <Step title="Use o Client Secret como Bearer Token" icon="lock">
+    Inclua seu Client Secret como token no header de autorização em todas as requisições:
+    
+    ```http
+    Authorization: Bearer seu-client-secret
+    ```
+  </Step>
+</Steps>
+
+## Exemplo de Integração
+
+<CodeGroup>
+  <Code title="JavaScript" active>
+    ```javascript
+    // Exemplo de geração de QR Code PIX - API v2
+    async function gerarQrCode() {
+      try {
+        // Usar o Client Secret como Bearer token
+        const clientSecret = 'seu-client-secret';
+        
+        const response = await fetch('https://sandbox.ws.relaxpay.site/api/v2/gateway/request-qrcode', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${clientSecret}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            amount: 100.00,
+            dueDate: '2024-12-31',
+            callbackUrl: 'https://seu-site.com/webhook/relaxpay'
+          })
+        });
+        
+        const data = await response.json();
+        console.log('QR Code gerado:', data);
+        
+        // Exibe o QR Code para o cliente
+        exibirQrCode(data.paymentCodeBase64);
+      } catch (error) {
+        console.error('Erro ao gerar QR Code:', error);
+      }
+    }
+    ```
+  </Code>
+  <Code title="PHP">
+    ```php
+    <?php
+    // Exemplo de geração de QR Code PIX - API v2
+    function gerarQrCode() {
+      // Usar o Client Secret como Bearer token
+      $clientSecret = 'seu-client-secret';
+      
+      // Chamar a API
+      $ch = curl_init();
+      
+      curl_setopt_array($ch, [
+        CURLOPT_URL => 'https://sandbox.ws.relaxpay.site/api/v2/gateway/request-qrcode',
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_POST => true,
+        CURLOPT_HTTPHEADER => [
+          'Authorization: Bearer ' . $clientSecret,
+          'Content-Type: application/json'
+        ],
+        CURLOPT_POSTFIELDS => json_encode([
+          'amount' => 100.00,
+          'dueDate' => '2024-12-31',
+          'callbackUrl' => 'https://seu-site.com/webhook/relaxpay'
+        ])
+      ]);
+      
+      $response = curl_exec($ch);
+      $data = json_decode($response, true);
+      
+      // Exibe o QR Code para o cliente
+      echo '<img src="data:image/png;base64,' . $data['paymentCodeBase64'] . '" />';
+    }
+    ```
+  </Code>
+</CodeGroup>
+
+## Fluxo de Integração
+
+<Steps>
+  <Step title="Obtenha suas Credenciais" icon="id-card">
+    Acesse o [Dashboard RelaxPay](https://dashboard.relaxpay.app) e obtenha seu Client ID e Client Secret
+  </Step>
+  <Step title="Implemente a Autenticação" icon="key">
+    Use seu Client Secret como Bearer token no header Authorization de suas requisições
+  </Step>
+  <Step title="Configure os Webhooks" icon="bell">
+    Implemente um endpoint para receber notificações automáticas sobre o status das transações
+  </Step>
+  <Step title="Teste sua Integração" icon="flask">
+    Utilize o ambiente de sandbox para validar sua implementação antes de ir para produção
+  </Step>
+</Steps>
+
+## Próximos Passos
+
+<CardGroup cols={3}>
+  <Card title="Autenticação" icon="key" href="/v2/gateway/authentication">
+    Saiba mais sobre o processo de autenticação
+  </Card>
+  <Card title="Referência da API" icon="book" href="/v2/gateway/api-reference">
+    Explore todos os endpoints disponíveis
+  </Card>
+  <Card title="Webhooks" icon="bell" href="/v2/gateway/webhooks">
+    Configure notificações em tempo real
+  </Card>
+</CardGroup>
+
+<Info>
+  Se você prefere uma autenticação via headers, também oferecemos a [API v1](/v1/gateway/introduction), que utiliza autenticação via headers ci e cs.
+</Info> 
