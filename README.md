@@ -1,7 +1,9 @@
 <p align="center" width="100%">
 <img src="logo/logo.svg" width="500" />
 </p>
+
 # RelaxPay Documentation
+
 Documentação oficial da API RelaxPay, um gateway de pagamento moderno e intuitivo para integração de PIX.
 
 
