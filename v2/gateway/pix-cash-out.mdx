@@ -1,0 +1,294 @@
+---
+title: "Enviar Pagamento Pix"
+description: "Envie pagamentos instantâneos via PIX para seus clientes e fornecedores"
+openapi: POST /api/v2/gateway/pix-payment
+---
+
+<Note>
+  O PIX Cash-out permite que você realize transferências financeiras instantâneas para qualquer chave PIX, ideal para pagamentos a fornecedores, reembolsos e saques.
+</Note>
+
+## Visão Geral
+
+<Frame>
+  <img src="/images/pix-cash-out-flow.png" alt="Fluxo de PIX Cash-out" />
+</Frame>
+
+O fluxo de PIX Cash-out consiste em:
+
+<Steps>
+  <Step title="Solicitar transferência">
+    Sua aplicação envia uma requisição de pagamento para a API RelaxPay
+  </Step>
+  <Step title="Processamento do pagamento">
+    O sistema RelaxPay processa e valida a transferência junto ao Banco Central
+  </Step>
+  <Step title="Confirmação da operação">
+    Você recebe uma notificação via webhook quando a transferência é concluída
+  </Step>
+</Steps>
+
+## Realizar Transferência PIX
+
+<Card title="Endpoint" icon="code">
+  ```
+  POST /api/v2/gateway/pix-payment
+  ```
+</Card>
+
+### Parâmetros
+
+<Tabs>
+  <Tab title="Request">
+    <ParamField body="key" type="string" required>
+      Chave PIX do destinatário
+    </ParamField>
+    <ParamField body="typeKey" type="string" required>
+      Tipo da chave PIX
+      <Expandable>
+        <ResponseField name="document">CPF/CNPJ</ResponseField>
+        <ResponseField name="phoneNumber">Número de telefone</ResponseField>
+        <ResponseField name="email">Endereço de e-mail</ResponseField>
+        <ResponseField name="randomKey">Chave aleatória</ResponseField>
+        <ResponseField name="paymentCode">Código de pagamento</ResponseField>
+      </Expandable>
+    </ParamField>
+    <ParamField body="value" type="number" required>
+      Valor da transferência (ex: 156.79)
+    </ParamField>
+    <ParamField body="callbackUrl" type="string" required>
+      URL para receber notificações sobre o pagamento
+    </ParamField>
+    <ParamField body="documentValidation" type="string">
+      CPF/CNPJ para validar se pertence à chave PIX informada (opcional)
+    </ParamField>
+    <ParamField body="externalId" type="string">
+      ID para controle de duplicidade em seu sistema (opcional)
+    </ParamField>
+  </Tab>
+  <Tab title="Response">
+    <ResponseField name="idTransaction" type="string">
+      Identificador único da transação na RelaxPay
+    </ResponseField>
+    <ResponseField name="response" type="string">
+      Status da requisição (OK, ERROR, etc)
+    </ResponseField>
+  </Tab>
+</Tabs>
+
+### Exemplo
+
+<CodeGroup>
+  <Code title="Request" active>
+    ```json
+    {
+      "value": 150.00,
+      "key": "62999998888",
+      "typeKey": "phoneNumber",
+      "callbackUrl": "https://sua-loja.com/webhook/relaxpay",
+      "documentValidation": "123.456.789-00",
+      "externalId": "PAGAMENTO-12345"
+    }
+    ```
+  </Code>
+  <Code title="Response">
+    ```json
+    {
+      "idTransaction": "10dc395c-bee0-4368-a980-85a610987e30",
+      "response": "OK"
+    }
+    ```
+  </Code>
+  <Code title="cURL">
+    ```bash
+    curl -X POST https://ws.relaxpay.site/api/v2/gateway/pix-payment \
+      -H "ci: seu-client-id" \
+      -H "cs: seu-client-secret" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "value": 150.00,
+        "key": "62999998888",
+        "typeKey": "phoneNumber",
+        "callbackUrl": "https://sua-loja.com/webhook/relaxpay",
+        "externalId": "PAGAMENTO-12345"
+      }'
+    ```
+  </Code>
+  <Code title="JavaScript">
+    ```javascript
+    const response = await fetch('https://ws.relaxpay.site/api/v2/gateway/pix-payment', {
+      method: 'POST',
+      headers: {
+        'ci': 'seu-client-id',
+        'cs': 'seu-client-secret',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        value: 150.00,
+        key: "62999998888",
+        typeKey: "phoneNumber",
+        callbackUrl: "https://sua-loja.com/webhook/relaxpay",
+        externalId: "PAGAMENTO-12345"
+      })
+    });
+    
+    const data = await response.json();
+    console.log(data);
+    ```
+  </Code>
+</CodeGroup>
+
+## Teste ao Vivo
+
+<Frame>
+  <div style={{ padding: '20px', borderRadius: '8px', backgroundColor: '#f9f9f9' }}>
+    <h3>Envie um PIX</h3>
+    <p>Realize uma transferência PIX de teste</p>
+  </div>
+</Frame>
+
+<ParamField path="valor" type="number" required>
+  Valor em R$ (mínimo: R$ 1,00)
+</ParamField>
+
+<ParamField path="chavePix" type="string" required>
+  Chave PIX do destinatário
+</ParamField>
+
+<ParamField path="tipoChave" select required>
+  <Option value="document">CPF/CNPJ</Option>
+  <Option value="phoneNumber">Telefone</Option>
+  <Option value="email">Email</Option>
+  <Option value="randomKey">Chave aleatória</Option>
+</ParamField>
+
+<Button>Enviar PIX</Button>
+
+## Notificações
+
+<Note>
+  Para informações detalhadas sobre notificações de webhook, consulte a [página de Webhooks](/gateway/webhooks).
+</Note>
+
+Quando uma transferência for processada, você receberá notificações com a seguinte estrutura:
+
+<AccordionGroup>
+  <Accordion title="Transferência Concluída" icon="circle-check">
+    <ResponseField name="event" type="string">
+      transfer.completed
+    </ResponseField>
+    
+    ```json
+    {
+      "event": "transfer.completed",
+      "data": {
+        "idTransaction": "10dc395c-bee0-4368-a980-85a610987e30",
+        "typeTransaction": "PIX_CASHOUT",
+        "statusTransaction": "PAID_OUT",
+        "value": 150.00,
+        "destinationName": "Maria Oliveira",
+        "destinationTaxId": "123.456.789-00",
+        "destinationBank": "Banco XYZ"
+      }
+    }
+    ```
+  </Accordion>
+  <Accordion title="Transferência Falhou" icon="triangle-exclamation">
+    <ResponseField name="event" type="string">
+      transfer.failed
+    </ResponseField>
+    
+    ```json
+    {
+      "event": "transfer.failed",
+      "data": {
+        "idTransaction": "10dc395c-bee0-4368-a980-85a610987e30",
+        "typeTransaction": "PIX_CASHOUT",
+        "statusTransaction": "ERROR",
+        "value": 150.00,
+        "errorCode": "PIX_KEY_NOT_FOUND",
+        "errorMessage": "A chave PIX informada não foi encontrada"
+      }
+    }
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Códigos de Status
+
+<CardGroup cols={2}>
+  <Card title="PAID_OUT" icon="circle-check" color="#4CAF50">
+    Transferência concluída com sucesso
+  </Card>
+  <Card title="ERROR" icon="circle-xmark" color="#F44336">
+    Erro no processamento da transferência
+  </Card>
+  <Card title="CANCELED" icon="ban" color="#FFC107">
+    Transferência cancelada
+  </Card>
+  <Card title="RETURNED" icon="rotate-left" color="#FF9800">
+    Valor devolvido pelo destinatário
+  </Card>
+</CardGroup>
+
+## Segurança
+
+<Warning>
+  Por motivos de segurança, somente IPs cadastrados podem realizar operações de PIX Cash-out.
+</Warning>
+
+### Configuração de IP
+
+<Steps>
+  <Step title="Acesse seu Dashboard">
+    Entre no [Dashboard RelaxPay](https://dashboard.relaxpay.app) e faça login
+  </Step>
+  <Step title="Navegue até Gerenciamento de IPs">
+    Acesse **GATEWAY/CHECKOUT > GERENCIAMENTO DE IPs**
+  </Step>
+  <Step title="Adicione seu IP">
+    Inclua o endereço IP do seu servidor que fará as requisições
+    <Frame>
+      <img src="/images/ip-management.png" alt="Tela de gerenciamento de IPs" />
+    </Frame>
+  </Step>
+</Steps>
+
+## Boas Práticas
+
+<Check>
+  **Use externalId**: Sempre inclua um identificador único para evitar pagamentos duplicados
+</Check>
+<Check>
+  **Valide documentos**: Quando possível, use documentValidation para maior segurança
+</Check>
+<Check>
+  **Processamento assíncrono**: Trate as transferências de forma assíncrona via webhooks
+</Check>
+<Check>
+  **Mecanismo de retry**: Implemente retentativas em caso de falhas temporárias
+</Check>
+
+## Códigos de Erro
+
+Para uma lista completa dos códigos de erro e suas soluções, consulte a [página de Erros](/gateway/errors).
+
+<AccordionGroup>
+  <Accordion title="Erros Comuns">
+    <ResponseField name="NO_FUNDS" type="error">
+      Saldo insuficiente para realizar a transferência
+    </ResponseField>
+    <ResponseField name="PIX_KEY_NOT_FOUND" type="error">
+      A chave PIX informada não foi encontrada
+    </ResponseField>
+    <ResponseField name="DOCUMENT_VALIDATE" type="error">
+      A chave PIX não pertence ao documento informado
+    </ResponseField>
+    <ResponseField name="DUPLICATE_EXTERNAL_ID" type="warning">
+      O externalId já foi utilizado em outra transação
+    </ResponseField>
+    <ResponseField name="UNAUTHORIZED_IP" type="error">
+      O IP que está tentando realizar a operação não está autorizado
+    </ResponseField>
+  </Accordion>
+</AccordionGroup> 

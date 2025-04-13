@@ -25,6 +25,14 @@
     "dark": "#111827",
     "decoration": "gradient"
   },
+  "api": {
+    "mdx": {
+      "server": "https://ws.relaxpay.api/",
+      "auth": {
+        "method": "key"
+      }
+    }
+  },
   "navbar": {
     "links": [
       {
@@ -39,27 +47,65 @@
     }
   },
   "navigation": {
-    "groups": [
+    "versions": [
       {
-        "group": "Começando",
-        "pages": [
-          "introduction",
-          "gateway/authentication",
-          "gateway/environments"
+        "version": "v1",
+        "groups": [
+          {
+            "group": "Começando",
+            "pages": [
+              "v1/gateway/introduction",
+              "v1/gateway/authentication",
+              "v1/gateway/environments"
+            ]
+          },
+          {
+            "group": "Gateway PIX",
+            "pages": [
+              "v1/gateway/api-reference",
+              "v1/gateway/pix-cash-in",
+              "v1/gateway/pix-refund",
+              "v1/gateway/pix-status",
+              "v1/gateway/pix-cash-out"
+            ]
+          },
+          {
+            "group": "Integrações",
+            "pages": [
+              "v1/gateway/webhooks",
+              "v1/gateway/errors"
+            ]
+          }
         ]
       },
       {
-        "group": "Gateway PIX",
-        "pages": [
-          "gateway/pix-cash-in",
-          "gateway/pix-cash-out"
-        ]
-      },
-      {
-        "group": "Integrações",
-        "pages": [
-          "gateway/webhooks",
-          "gateway/errors"
+        "version": "v2",
+        "groups": [
+          {
+            "group": "Começando",
+            "pages": [
+              "v2/gateway/introduction",
+              "v2/gateway/authentication",
+              "v2/gateway/environments"
+            ]
+          },
+          {
+            "group": "Gateway PIX",
+            "pages": [
+              "v2/gateway/api-reference",
+              "v2/gateway/pix-cash-in",
+              "v2/gateway/pix-refund",
+              "v2/gateway/pix-status",
+              "v2/gateway/pix-cash-out"
+            ]
+          },
+          {
+            "group": "Integrações",
+            "pages": [
+              "v2/gateway/webhooks",
+              "v2/gateway/errors"
+            ]
+          }
         ]
       }
     ]
@@ -71,18 +117,6 @@
   "search": {
     "prompt": "Buscar na documentação..."
   },
-  "api": {
-    "baseUrl": "https://sandbox.ws.relaxpay.site",
-    "auth": {
-      "method": "key",
-      "name": "ci",
-      "inputPrefix": "seu-client-id"
-    },
-    "playground": {
-      "mode": "show"
-    }
-  },
-  "openapi": "./api/openapi.yaml",
   "feedback": {
     "suggestEdit": true,
     "raiseIssue": true

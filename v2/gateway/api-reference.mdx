@@ -1,0 +1,304 @@
+---
+title: "Referência da API"
+description: "Visão geral de todos os endpoints da API RelaxPay v2"
+icon: "book"
+---
+
+<Note>
+  Esta é uma visão geral de todos os endpoints disponíveis na API RelaxPay v2. Para documentação detalhada de cada operação, consulte suas respectivas seções.
+</Note>
+
+## Visão Geral
+
+A API RelaxPay v2 oferece uma solução completa para integração de pagamentos PIX em suas aplicações. Com ela, você pode:
+
+<CardGroup cols={3}>
+  <Card title="PIX Cash-in" icon="qrcode" color="#4CAF50" href="/v2/gateway/pix-cash-in">
+    Gerar QR Codes para recebimento
+  </Card>
+  <Card title="PIX Cash-out" icon="money-bill-transfer" color="#2196F3" href="/v2/gateway/pix-cash-out">
+    Transferir para outras contas
+  </Card>
+  <Card title="PIX Refund" icon="rotate-left" color="#FF9800" href="/v2/gateway/pix-refund">
+    Reembolsar pagamentos recebidos
+  </Card>
+</CardGroup>
+
+## Autenticação
+
+Todas as requisições à API v2 devem incluir o Bearer token no header de autenticação:
+
+```http
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+```
+
+Para obter o token, utilize o endpoint de autenticação:
+
+```http
+POST /api/v2/auth/token
+Content-Type: application/json
+
+{
+  "ci": "seu-client-id",
+  "cs": "seu-client-secret"
+}
+```
+
+Para mais detalhes sobre autenticação, consulte a [página de autenticação](/v2/gateway/authentication).
+
+## Ambientes
+
+<CardGroup cols={2}>
+  <Card title="Sandbox" icon="flask" color="#9C27B0">
+    ```
+    https://sandbox.ws.relaxpay.site
+    ```
+    Ambiente de testes. Todos os pagamentos são simulados.
+  </Card>
+  <Card title="Produção" icon="globe" color="#F44336">
+    ```
+    https://ws.relaxpay.site
+    ```
+    Ambiente de produção. Todas as transações são reais.
+  </Card>
+</CardGroup>
+
+## Endpoints
+
+### Autenticação
+
+<AccordionGroup>
+  <Accordion title="POST /api/v2/auth/token" icon="key">
+    Obtém um token de acesso para a API v2.
+    
+    **Corpo da requisição:**
+    ```json
+    {
+      "ci": "seu-client-id",
+      "cs": "seu-client-secret"
+    }
+    ```
+    
+    **Resposta:**
+    ```json
+    {
+      "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+      "expiresIn": 3600,
+      "tokenType": "Bearer"
+    }
+    ```
+    
+    [Ver documentação completa](/v2/gateway/authentication)
+  </Accordion>
+</AccordionGroup>
+
+### PIX Cash-in
+
+<AccordionGroup>
+  <Accordion title="POST /api/v2/gateway/request-qrcode" icon="qrcode">
+    Gera um QR Code PIX para recebimento de pagamento.
+    
+    **Corpo da requisição:**
+    ```json
+    {
+      "requestNumber": "PEDIDO-12345",
+      "dueDate": "2024-12-31",
+      "amount": 100.00,
+      "callbackUrl": "https://seu-site.com/webhook/relaxpay"
+    }
+    ```
+    
+    **Resposta:**
+    ```json
+    {
+      "idTransaction": "0b935d10-3c90-4af3-8776-dd18622a7941",
+      "paymentCode": "00020101021226890014br.gov.bcb.pix...",
+      "paymentCodeBase64": "iVBORw0KGgoAAAANSUhEUgAAAPoAAAD6AQ...",
+      "response": "OK",
+      "expiresAt": "2024-12-31T23:59:59Z"
+    }
+    ```
+    
+    [Ver documentação completa](/v2/gateway/pix-cash-in)
+  </Accordion>
+  
+  <Accordion title="GET /api/v2/gateway/check-payment" icon="circle-check">
+    Verifica o status de um pagamento PIX.
+    
+    **Parâmetros de consulta:**
+    ```
+    idTransaction=0b935d10-3c90-4af3-8776-dd18622a7941
+    ```
+    
+    **Resposta:**
+    ```json
+    {
+      "idTransaction": "0b935d10-3c90-4af3-8776-dd18622a7941",
+      "status": "PAID",
+      "amount": 100.00,
+      "paidAt": "2024-12-15T14:30:45Z",
+      "response": "OK"
+    }
+    ```
+    
+    [Ver documentação completa](/v2/gateway/check-payment)
+  </Accordion>
+</AccordionGroup>
+
+### PIX Cash-out
+
+<AccordionGroup>
+  <Accordion title="POST /api/v2/gateway/pix-payment" icon="money-bill-transfer">
+    Realiza uma transferência PIX para uma chave PIX.
+    
+    **Corpo da requisição:**
+    ```json
+    {
+      "value": 150.00,
+      "key": "62999998888",
+      "typeKey": "phoneNumber",
+      "callbackUrl": "https://seu-site.com/webhook/relaxpay",
+      "externalId": "PAGAMENTO-12345"
+    }
+    ```
+    
+    **Resposta:**
+    ```json
+    {
+      "idTransaction": "10dc395c-bee0-4368-a980-85a610987e30",
+      "status": "PROCESSING",
+      "response": "OK"
+    }
+    ```
+    
+    [Ver documentação completa](/v2/gateway/pix-cash-out)
+  </Accordion>
+</AccordionGroup>
+
+### PIX Refund
+
+<AccordionGroup>
+  <Accordion title="POST /api/v2/gateway/pix-refund" icon="undo">
+    Reembolsa um pagamento PIX recebido anteriormente.
+    
+    **Corpo da requisição:**
+    ```json
+    {
+      "originalTransactionId": "0b935d10-3c90-4af3-8776-dd18622a7941",
+      "refundReason": "Cancelamento solicitado pelo cliente",
+      "callbackUrl": "https://seu-site.com/webhook/relaxpay"
+    }
+    ```
+    
+    **Resposta:**
+    ```json
+    {
+      "idTransaction": "3f8b2a5c-9e47-4d98-b6a1-7c432f89e21b",
+      "originalTransactionId": "0b935d10-3c90-4af3-8776-dd18622a7941",
+      "amount": 100.00,
+      "status": "PROCESSING",
+      "response": "OK"
+    }
+    ```
+    
+    [Ver documentação completa](/v2/gateway/pix-refund)
+  </Accordion>
+</AccordionGroup>
+
+## Webhooks
+
+A API RelaxPay v2 envia notificações para a URL de callback configurada nos endpoints. As notificações incluem:
+
+<CardGroup cols={3}>
+  <Card title="pix.received" icon="bell" color="#4CAF50">
+    Pagamento PIX recebido
+  </Card>
+  <Card title="pix.payment.status" icon="bell" color="#2196F3">
+    Status de transferência atualizado
+  </Card>
+  <Card title="refund.status" icon="bell" color="#FF9800">
+    Status de reembolso atualizado
+  </Card>
+</CardGroup>
+
+Exemplo de notificação de pagamento recebido:
+
+```json
+{
+  "event": "pix.received",
+  "data": {
+    "idTransaction": "0b935d10-3c90-4af3-8776-dd18622a7941",
+    "status": "PAID",
+    "amount": 100.00,
+    "paidAt": "2024-12-15T14:30:45Z"
+  }
+}
+```
+
+## Status das Operações
+
+<CardGroup cols={3}>
+  <Card title="PENDING" icon="clock" color="#FFC107">
+    Aguardando pagamento
+  </Card>
+  <Card title="PAID" icon="check-circle" color="#4CAF50">
+    Pagamento confirmado
+  </Card>
+  <Card title="PROCESSING" icon="spinner" color="#2196F3">
+    Em processamento
+  </Card>
+  <Card title="COMPLETED" icon="check-double" color="#4CAF50">
+    Operação concluída
+  </Card>
+  <Card title="FAILED" icon="times-circle" color="#F44336">
+    Falha na operação
+  </Card>
+  <Card title="EXPIRED" icon="calendar-times" color="#FF9800">
+    QR Code expirado
+  </Card>
+  <Card title="CANCELLED" icon="ban" color="#9E9E9E">
+    Operação cancelada
+  </Card>
+  <Card title="REFUNDED" icon="undo" color="#9C27B0">
+    Pagamento reembolsado
+  </Card>
+</CardGroup>
+
+## Códigos de Erro
+
+Consulte a [documentação de erros](/v2/gateway/errors) para ver a lista completa de códigos de erro e suas descrições.
+
+## Limites e Restrições
+
+<Frame>
+  <div style={{ padding: '20px', borderRadius: '8px', backgroundColor: '#f9f9f9' }}>
+    <h3>Limites da API</h3>
+    <ul>
+      <li><strong>Requisições:</strong> 100 requisições por minuto</li>
+      <li><strong>Tamanho máximo do payload:</strong> 1MB</li>
+      <li><strong>Timeout da requisição:</strong> 30 segundos</li>
+      <li><strong>Validade do QR Code:</strong> Até a data de vencimento especificada</li>
+      <li><strong>Limite de transferência:</strong> Configurável no Dashboard</li>
+    </ul>
+  </div>
+</Frame>
+
+## Exemplos de Implementação
+
+Acesse os exemplos completos de implementação nas páginas específicas de cada operação:
+
+<CardGroup cols={3}>
+  <Card title="Gerar QR Code" icon="qrcode" href="/v2/gateway/pix-cash-in#exemplo-de-implementação">
+    Como implementar a geração de QR Codes
+  </Card>
+  <Card title="Verificar Status" icon="circle-check" href="/v2/gateway/pix-status#exemplo-de-implementação">
+    Como verificar status de pagamentos
+  </Card>
+  <Card title="Transferir PIX" icon="money-bill-transfer" href="/v2/gateway/pix-cash-out#boas-práticas">
+    Como implementar transferências PIX
+  </Card>
+</CardGroup>
+
+<Warning>
+  Para suporte técnico e dúvidas específicas, entre em contato com nossa equipe pelo email suporte@relaxpay.app.
+</Warning> 

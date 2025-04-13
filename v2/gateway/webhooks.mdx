@@ -1,0 +1,364 @@
+---
+title: "Webhooks"
+description: "Receba notificações em tempo real sobre todas as suas transações PIX"
+icon: "bell"
+---
+
+<Note>
+  O sistema de webhooks permite que você receba notificações em tempo real sobre mudanças no status das transações.
+</Note>
+
+## Visão Geral
+
+<Frame>
+  <img src="/images/webhooks-flow.png" alt="Fluxo de Webhooks" />
+</Frame>
+
+Os webhooks são endpoints HTTP POST configurados no seu sistema para receber notificações automáticas da RelaxPay quando ocorrem eventos importantes.
+
+<CardGroup cols={2}>
+  <Card title="Pagamentos" icon="money-bill-transfer" color="#4CAF50">
+    Notificações de pagamentos recebidos e estornos
+  </Card>
+  <Card title="Transferências" icon="paper-plane" color="#2196F3">
+    Alertas de transferências realizadas ou falhas
+  </Card>
+  <Card title="Conformidade" icon="shield-check" color="#FFC107">
+    Informações sobre validações e verificações
+  </Card>
+  <Card title="Segurança" icon="lock" color="#F44336">
+    Eventos relacionados à segurança da conta
+  </Card>
+</CardGroup>
+
+## Configuração Rápida
+
+<Steps>
+  <Step title="Crie um endpoint">
+    Adicione um endpoint em seu sistema para receber requisições POST
+    ```javascript
+    // Exemplo em Node.js (Express)
+    app.post('/webhooks/relaxpay', express.json(), (req, res) => {
+      // Processar webhook
+      res.status(200).send('OK');
+    });
+    ```
+  </Step>
+  <Step title="Registre o webhook">
+    Configure a URL do seu endpoint nas suas integrações com a RelaxPay
+    
+    <Tabs>
+      <Tab title="Dashboard">
+        Acesse **Configurações > Webhooks > Adicionar Novo**
+      </Tab>
+      <Tab title="API">
+        ```bash
+        curl -X POST https://ws.relaxpay.site/api/v2/webhooks/register \
+          -H "ci: seu-client-id" \
+          -H "cs: seu-client-secret" \
+          -d '{"url": "https://seu-site.com/webhooks/relaxpay", "events": ["payment.received"]}'
+        ```
+      </Tab>
+    </Tabs>
+  </Step>
+  <Step title="Implemente a validação">
+    <CodeGroup>
+      <Code title="Node.js" active>
+        ```javascript
+        function validarAssinatura(req) {
+          const signature = req.headers['x-signature'];
+          const payload = JSON.stringify(req.body);
+          const calculatedSignature = crypto
+            .createHmac('sha256', CLIENT_SECRET)
+            .update(payload)
+            .digest('hex');
+          
+          return crypto.timingSafeEqual(
+            Buffer.from(signature),
+            Buffer.from(calculatedSignature)
+          );
+        }
+        ```
+      </Code>
+      <Code title="PHP">
+        ```php
+        function validarAssinatura($payload, $signature, $clientSecret) {
+            $calculatedSignature = hash_hmac('sha256', $payload, $clientSecret);
+            return hash_equals($calculatedSignature, $signature);
+        }
+        ```
+      </Code>
+    </CodeGroup>
+  </Step>
+</Steps>
+
+## Teste seu Webhook
+
+<Tabs>
+  <Tab title="Testador online">
+    <Frame>
+      <div style={{ padding: '20px' }}>
+        <h3>Testador de Webhook</h3>
+        <p>Use esta ferramenta para testar seu endpoint de webhook</p>
+      </div>
+    </Frame>
+
+    <ParamField path="url" required>
+      URL do webhook (ex: https://seu-site.com/webhooks/relaxpay)
+    </ParamField>
+
+    <ParamField path="evento" select>
+      <Option value="payment.received">payment.received</Option>
+      <Option value="payment.refunded">payment.refunded</Option>
+      <Option value="transfer.completed">transfer.completed</Option>
+    </ParamField>
+    
+    <Button>Testar Webhook</Button>
+  </Tab>
+  <Tab title="Usando cURL">
+    ```bash
+    # Substitua com seu Client Secret
+    SECRET="seu-client-secret"
+
+    # Crie o payload
+    PAYLOAD='{"event":"payment.received","data":{"idTransaction":"test-123"}}'
+
+    # Calcule a assinatura
+    SIGNATURE=$(echo -n "$PAYLOAD" | openssl dgst -sha256 -hmac "$SECRET" | awk '{print $2}')
+
+    # Envie para seu endpoint
+    curl -X POST https://seu-site.com/webhooks/relaxpay \
+      -H "Content-Type: application/json" \
+      -H "X-Signature: $SIGNATURE" \
+      -d "$PAYLOAD"
+    ```
+  </Tab>
+</Tabs>
+
+## Eventos Disponíveis
+
+<AccordionGroup>
+  <Accordion title="Eventos de PIX Cash-in" icon="arrow-down">
+    <ResponseField name="payment.received" type="success">
+      Pagamento recebido com sucesso
+    </ResponseField>
+    <ResponseField name="payment.refunded" type="warning">
+      Pagamento estornado
+    </ResponseField>
+    <ResponseField name="payment.expired" type="error">
+      QR Code expirado sem pagamento
+    </ResponseField>
+  </Accordion>
+  <Accordion title="Eventos de PIX Cash-out" icon="arrow-up">
+    <ResponseField name="transfer.completed" type="success">
+      Transferência concluída com sucesso
+    </ResponseField>
+    <ResponseField name="transfer.failed" type="error">
+      Transferência falhou
+    </ResponseField>
+    <ResponseField name="transfer.returned" type="warning">
+      Devolução recebida
+    </ResponseField>
+  </Accordion>
+</AccordionGroup>
+
+## Formato dos Payloads
+
+<Tabs>
+  <Tab title="PIX Cash-in">
+    <CodeGroup>
+      <Code title="payment.received">
+        ```json
+        {
+          "event": "payment.received",
+          "data": {
+            "idTransaction": "0b935d10-3c90-4af3-8776-dd18622a7941",
+            "typeTransaction": "PIX",
+            "statusTransaction": "PAID_OUT",
+            "value": 100.00,
+            "payerName": "João Silva",
+            "payerTaxId": "123.456.789-00",
+            "paymentDate": "20/03/2024 15:30:45"
+          }
+        }
+        ```
+      </Code>
+      <Code title="payment.refunded">
+        ```json
+        {
+          "event": "payment.refunded",
+          "data": {
+            "idTransaction": "0b935d10-3c90-4af3-8776-dd18622a7941",
+            "typeTransaction": "PIX",
+            "statusTransaction": "CHARGEBACK",
+            "value": 100.00,
+            "refundReason": "Cliente solicitou estorno",
+            "refundDate": "21/03/2024 09:15:22"
+          }
+        }
+        ```
+      </Code>
+    </CodeGroup>
+  
+    <ResponseField name="idTransaction" type="string" required>
+      ID único da transação
+    </ResponseField>
+    <ResponseField name="typeTransaction" type="string" required>
+      Tipo da transação ("PIX")
+    </ResponseField>
+    <ResponseField name="statusTransaction" type="string" required>
+      Status atual ("PAID_OUT", "CHARGEBACK")
+    </ResponseField>
+    <ResponseField name="value" type="number" required>
+      Valor do pagamento
+    </ResponseField>
+    <ResponseField name="payerName" type="string">
+      Nome do pagador
+    </ResponseField>
+    <ResponseField name="payerTaxId" type="string">
+      CPF/CNPJ do pagador
+    </ResponseField>
+    <ResponseField name="paymentDate" type="string">
+      Data e hora do pagamento (dd/MM/yyyy HH:mm:ss)
+    </ResponseField>
+  </Tab>
+  <Tab title="PIX Cash-out">
+    <CodeGroup>
+      <Code title="transfer.completed">
+        ```json
+        {
+          "event": "transfer.completed",
+          "data": {
+            "idTransaction": "10dc395c-bee0-4368-a980-85a610987e30",
+            "typeTransaction": "PIX_CASHOUT",
+            "statusTransaction": "PAID_OUT",
+            "value": 150.00,
+            "destinationName": "Maria Oliveira",
+            "destinationTaxId": "987.654.321-00",
+            "destinationBank": "Banco XYZ"
+          }
+        }
+        ```
+      </Code>
+    </CodeGroup>
+    
+    <ResponseField name="idTransaction" type="string" required>
+      ID único da transação
+    </ResponseField>
+    <ResponseField name="typeTransaction" type="string" required>
+      Tipo da transação ("PIX_CASHOUT")
+    </ResponseField>
+    <ResponseField name="statusTransaction" type="string" required>
+      Status atual ("PAID_OUT", "CANCELED")
+    </ResponseField>
+    <ResponseField name="value" type="number" required>
+      Valor enviado
+    </ResponseField>
+    <ResponseField name="destinationName" type="string">
+      Nome do destinatário
+    </ResponseField>
+    <ResponseField name="destinationTaxId" type="string">
+      CPF/CNPJ do destinatário
+    </ResponseField>
+    <ResponseField name="destinationBank" type="string">
+      Banco do destinatário
+    </ResponseField>
+  </Tab>
+</Tabs>
+
+## Validação de Assinaturas
+
+<Steps>
+  <Step title="Extraia o cabeçalho">
+    Obtenha o cabeçalho `X-Signature` da requisição
+  </Step>
+  <Step title="Calcule o HMAC">
+    Gere o HMAC-SHA256 do corpo da requisição usando seu Client Secret
+  </Step>
+  <Step title="Compare os valores">
+    Verifique se a assinatura calculada corresponde ao cabeçalho recebido
+  </Step>
+</Steps>
+
+<CodeGroup>
+  <Code title="Node.js" active>
+    ```javascript
+    const crypto = require('crypto');
+
+    function validarAssinatura(req) {
+      const signature = req.headers['x-signature'];
+      const payload = JSON.stringify(req.body);
+      const calculatedSignature = crypto
+        .createHmac('sha256', CLIENT_SECRET)
+        .update(payload)
+        .digest('hex');
+      
+      return crypto.timingSafeEqual(
+        Buffer.from(signature),
+        Buffer.from(calculatedSignature)
+      );
+    }
+    ```
+  </Code>
+  <Code title="PHP">
+    ```php
+    function validarAssinatura($payload, $signature, $clientSecret) {
+        $calculatedSignature = hash_hmac('sha256', $payload, $clientSecret);
+        return hash_equals($calculatedSignature, $signature);
+    }
+    
+    // No seu endpoint
+    $payload = file_get_contents('php://input');
+    $signature = $_SERVER['HTTP_X_SIGNATURE'] ?? '';
+    
+    if (validarAssinatura($payload, $signature, $CLIENT_SECRET)) {
+        // Processar o webhook
+        http_response_code(200);
+    } else {
+        http_response_code(401);
+    }
+    ```
+  </Code>
+</CodeGroup>
+
+## Boas Práticas
+
+<Check>
+  **Idempotência**: Processe eventos de forma idempotente para evitar duplicações
+</Check>
+<Check>
+  **Respostas Rápidas**: Responda em até 5 segundos com status 200 para confirmar recebimento
+</Check>
+<Check>
+  **Processamento Assíncrono**: Trabalhos pesados devem ser executados após a resposta
+</Check>
+<Check>
+  **Logs**: Mantenha registros detalhados de todos os webhooks recebidos
+</Check>
+<Check>
+  **Retry**: Implemente lógica de retentativa para falhas temporárias
+</Check>
+
+<Warning>
+  Seu endpoint de webhook deve responder em até 5 segundos com código 200 para confirmar o recebimento. Processos demorados devem ser executados de forma assíncrona.
+</Warning>
+
+## Solução de Problemas
+
+<AccordionGroup>
+  <Accordion title="Webhook não recebido">
+    - Verifique se a URL está acessível publicamente
+    - Confirme que não há firewalls bloqueando a conexão
+    - Verifique se a URL foi configurada corretamente no dashboard
+  </Accordion>
+  <Accordion title="Erro de validação de assinatura">
+    - Verifique se está usando o Client Secret correto
+    - Confirme que o payload não está sendo modificado
+    - Verifique se está usando o algoritmo HMAC-SHA256
+  </Accordion>
+  <Accordion title="Timeouts frequentes">
+    - Otimize o processamento do seu endpoint
+    - Separe o processamento da resposta
+    - Armazene o evento e processe-o assincronamente
+  </Accordion>
+</AccordionGroup> 
