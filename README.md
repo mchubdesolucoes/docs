@@ -2,7 +2,7 @@
 
 Documentação oficial da API RelaxPay, um gateway de pagamento moderno e intuitivo para integração de PIX.
 
-<img src="./images/hero.png" alt="RelaxPay API" width="800" />
+<img src="./images/logo.svg" alt="RelaxPay API" width="800" />
 
 ## 🚀 Recursos Implementados
 
